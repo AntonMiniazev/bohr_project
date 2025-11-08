@@ -4,6 +4,11 @@
 
 This repository provides automated deployment of a local Kubernetes cluster with 4 VMs using Vagrant and VirtualBox.
 
+## Plans for improvements
+- [ ] Switch configuration to Terraform
+- [ ] Configure nginx on cluster
+- [ ] Adapt configuration to external data queries and future web projects
+
 ### Specifications
 - Ubuntu 24.04.2 LTS
 - vagrant 2.4.7
