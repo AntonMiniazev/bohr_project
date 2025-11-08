@@ -1,0 +1,14 @@
+# =========================
+# Virtual environments / IDE
+# =========================
+.venv/
+.vscode/
+
+# =========================
+# Secrets / Config
+# =========================
+data_source/.env
+*.yaml.dec
+*.dec.yaml
+secret_enc/
+.secret_enc/
