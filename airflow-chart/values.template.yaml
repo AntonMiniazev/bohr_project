@@ -82,6 +82,11 @@ logs:
     storageClassName: $DEFAULT_STORAGE_CLASS
 
 postgresql:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: postgres
+    tag: "16"
   primary:
     persistence:
       storageClass: $DEFAULT_STORAGE_CLASS
@@ -162,3 +167,8 @@ dagProcessor:
     periodSeconds: 60
     failureThreshold: 5
     initialDelaySeconds: 30
+
+logs:
+  persistence:
+    enabled: true
+    size: 5Gi
