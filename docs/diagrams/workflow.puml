@@ -22,7 +22,7 @@ System_Boundary(home, "Home Kubernetes Cluster") {
 
 System_Boundary(publicLayer, "Public Access") {
     Component(apiLayer, "FastAPI Aggregator", "FastAPI", "Exposes parametrized endpoints that return aggregated slices")
-    Component(streamlitUi, "Streamlit Dashboard", "Streamlit", "Portfolio UI with interactive filters, charts, and tables")
+    Component(streamlitUi, "Streamlit Dashboard", "Streamlit", "Public analytics UI with interactive filters, charts, and tables")
 }
 
 Component(tunnelLink, "Encrypted Tunnel", "Reverse SSH / Tailscale", "Outbound connection that binds the API proxy to SQL Server")

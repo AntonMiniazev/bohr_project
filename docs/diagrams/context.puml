@@ -5,7 +5,8 @@ HIDE_STEREOTYPE()
 AddElementTag("PublicCloud", $bgColor="#E6F2FF", $fontColor="#0B2545")
 
 Person(customer, "External Viewer", "Browses the public dashboard from any browser")
-System(streamlit, "Streamlit Dashboard", "Streamlit Community Cloud", "Portfolio UI with KPI cards, charts, and tables")
+Person(dev, "Developer (Project Owner)", "Builds and operates the analytics delivery platform")
+System(streamlit, "Streamlit Dashboard", "Streamlit Community Cloud", "Public-facing analytics UI with KPI cards, charts, and tables")
 System(api, "Public API Proxy", "FastAPI on Render/Railway/VPS", "Filters requests and returns aggregated analytics")
 System_Ext(tunnel, "Encrypted Tunnel", "Tailscale / reverse SSH", "Outbound-only channel from the home cluster")
 
@@ -15,6 +16,9 @@ System_Boundary(home, "Home Kubernetes Cluster") {
 }
 
 Rel(customer, streamlit, "Explores metrics", "HTTPS")
+Rel(dev, streamlit, "Publishes UI updates", "CI/CD")
+Rel(dev, api, "Maintains endpoints", "Git / IaC")
+Rel(dev, dataPlatform, "Owns ETL & infrastructure", "Automation")
 Rel(streamlit, api, "Requests filtered datasets", "HTTPS")
 Rel(api, tunnel, "Forwards parametrized SQL", "Encrypted transport")
 Rel(tunnel, sql, "Executes read-only queries", "TDS over VPN")

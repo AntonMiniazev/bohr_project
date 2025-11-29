@@ -4,6 +4,7 @@ LAYOUT_WITH_LEGEND()
 HIDE_STEREOTYPE()
 
 Person(user, "External Viewer", "Any browser user")
+Person(dev, "Developer (Project Owner)", "Operates releases and home-lab automation")
 
 System_Boundary(cloud, "Streamlit Community Cloud") {
     Container(streamlitApp, "Streamlit Dashboard", "Python + Streamlit", "Renders KPI cards, charts, and tables; caches proxy responses")
@@ -24,9 +25,12 @@ System_Boundary(cluster, "Home Kubernetes Cluster") {
 }
 
 Rel(user, streamlitApp, "Explores analytics", "HTTPS")
+Rel(dev, streamlitApp, "Publishes UI releases", "CI/CD")
 Rel(streamlitApp, apiProxy, "Fetches filtered datasets", "HTTPS requests")
+Rel(dev, apiProxy, "Maintains proxy endpoints", "GitOps")
 Rel(apiProxy, tunnelSvc, "Routes read-only queries", "Encrypted channel")
 Rel(tunnelSvc, sqlserver, "Executes parametrized SQL", "TDS over tunnel")
+Rel(dev, airflow, "Authors orchestration DAGs", "Automation")
 Rel(dataGen, minio, "Stores bronze batches")
 Rel(airflow, dataGen, "Schedules synthetic workloads")
 Rel(airflow, duckdb, "Triggers dbt models")
