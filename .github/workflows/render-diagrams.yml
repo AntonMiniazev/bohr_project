@@ -32,7 +32,7 @@ jobs:
           done
 
       - name: Commit rendered diagrams
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: nielsbohr/git-auto-commit-action@v5
         with:
           commit_message: "Update PlantUML rendered diagrams"
           file_pattern: "docs/images/*"
