@@ -26,9 +26,7 @@ jobs:
       - name: Render diagrams
         run: |
           mkdir -p docs/images
-          for file in docs/diagrams/*.puml; do
-            java -jar plantuml.jar -tpng "$file" -o "../images/"
-            java -jar plantuml.jar -tsvg "$file" -o "../images/"
+          plantuml -tsvg -o docs/images docs/diagrams/*.puml
           done
 
       - name: Commit rendered diagrams
