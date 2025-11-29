@@ -28,9 +28,12 @@ jobs:
           mkdir -p docs/images
           rm -f docs/images/*
 
-      - name: Render diagrams (SVG only)
+      - name: Render diagrams (SVG)
         run: |
-          java -jar plantuml.jar -tsvg -o docs/images docs/diagrams/*.puml
+          java -jar plantuml.jar \
+            -tsvg \
+            -o "$GITHUB_WORKSPACE/docs/images" \
+            docs/diagrams/*.puml
 
       - name: Commit rendered diagrams
         uses: stefanzweifel/git-auto-commit-action@v5
