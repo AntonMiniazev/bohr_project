@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - "docs/diagrams/**/*.puml"
-      - ".github/workflows/render-diagrams.yml"
   workflow_dispatch:
 
 jobs:
@@ -15,22 +14,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install PlantUML + Java
+      - name: Install Java + Graphviz
         run: |
           sudo apt-get update
-          sudo apt-get install -y plantuml
+          sudo apt-get install -y default-jre graphviz curl
+
+      - name: Download latest PlantUML
+        run: |
+          curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
 
       - name: Render diagrams
         run: |
           mkdir -p docs/images
           for file in docs/diagrams/*.puml; do
-            filename=$(basename "$file" .puml)
-            plantuml -tpng "$file" -o "../images/"
-            plantuml -tsvg "$file" -o "../images/"
+            java -jar plantuml.jar -tpng "$file" -o "../images/"
+            java -jar plantuml.jar -tsvg "$file" -o "../images/"
           done
 
-      - name: Commit generated images
+      - name: Commit rendered diagrams
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update rendered PlantUML diagrams"
+          commit_message: "Update PlantUML rendered diagrams"
           file_pattern: "docs/images/*"
