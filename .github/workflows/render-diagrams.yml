@@ -23,9 +23,13 @@ jobs:
         run: |
           curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
 
-      - name: Render diagrams (SVG only)
+      - name: Clean old diagrams
         run: |
           mkdir -p docs/images
+          rm -f docs/images/*
+
+      - name: Render diagrams (SVG only)
+        run: |
           java -jar plantuml.jar -tsvg -o docs/images docs/diagrams/*.puml
 
       - name: Commit rendered diagrams
