@@ -1,0 +1,36 @@
+name: Render PlantUML diagrams
+
+on:
+  push:
+    paths:
+      - "docs/diagrams/**/*.puml"
+      - ".github/workflows/render-diagrams.yml"
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PlantUML + Java
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y plantuml
+
+      - name: Render diagrams
+        run: |
+          mkdir -p docs/images
+          for file in docs/diagrams/*.puml; do
+            filename=$(basename "$file" .puml)
+            plantuml -tpng "$file" -o "../images/"
+            plantuml -tsvg "$file" -o "../images/"
+          done
+
+      - name: Commit generated images
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update rendered PlantUML diagrams"
+          file_pattern: "docs/images/*"

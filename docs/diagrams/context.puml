@@ -1,0 +1,24 @@
+@startuml Context
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+LAYOUT_WITH_LEGEND()
+HIDE_STEREOTYPE()
+AddElementTag("PublicCloud", $bgColor="#E6F2FF", $fontColor="#0B2545")
+
+Person(customer, "External Viewer", "Browses the public dashboard from any browser")
+System(streamlit, "Streamlit Dashboard", "Streamlit Community Cloud", "Portfolio UI with KPI cards, charts, and tables")
+System(api, "Public API Proxy", "FastAPI on Render/Railway/VPS", "Filters requests and returns aggregated analytics")
+System_Ext(tunnel, "Encrypted Tunnel", "Tailscale / reverse SSH", "Outbound-only channel from the home cluster")
+
+System_Boundary(home, "Home Kubernetes Cluster") {
+    System(sql, "SQL Server Datamart", "Gold analytics layer", "Curated tables exposed to the API proxy")
+    System(dataPlatform, "Synthetic Data Platform", "Python + Airflow + MinIO + DuckDB + dbt", "Generates, ingests, and refines synthetic commerce data")
+}
+
+Rel(customer, streamlit, "Explores metrics", "HTTPS")
+Rel(streamlit, api, "Requests filtered datasets", "HTTPS")
+Rel(api, tunnel, "Forwards parametrized SQL", "Encrypted transport")
+Rel(tunnel, sql, "Executes read-only queries", "TDS over VPN")
+Rel(dataPlatform, sql, "Publishes curated tables", "ETL jobs")
+
+SHOW_LEGEND()
+@enduml

@@ -1,0 +1,43 @@
+@startuml Workflow
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+LAYOUT_WITH_LEGEND()
+HIDE_STEREOTYPE()
+
+System_Boundary(home, "Home Kubernetes Cluster") {
+    Container_Boundary(bronze, "Synthetic Data & Bronze Layer") {
+        Component(dataScripts, "Data Generator", "Python jobs", "Creates synthetic orders, clients, and fulfillment events")
+        Component(minioStore, "MinIO Buckets", "Object storage", "Stores raw & bronze JSON/Parquet files")
+    }
+
+    Container_Boundary(silver, "Processing & Silver Layer") {
+        Component(airflowOrch, "Airflow DAGs", "Apache Airflow", "Schedules generators, DuckDB steps, and dbt runs")
+        Component(duckdbStage, "DuckDB Processing", "DuckDB", "Transforms bronze data into conformed silver tables")
+        Component(dbtModels, "dbt Models", "dbt", "Implements business logic and publishes gold models")
+    }
+
+    Container_Boundary(gold, "Serving Layer") {
+        Component(sqlGold, "SQL Server Views", "MS SQL Server", "Curated, index-friendly marts for public analytics")
+    }
+}
+
+System_Boundary(publicLayer, "Public Access") {
+    Component(apiLayer, "FastAPI Aggregator", "FastAPI", "Exposes parametrized endpoints that return aggregated slices")
+    Component(streamlitUi, "Streamlit Dashboard", "Streamlit", "Portfolio UI with interactive filters, charts, and tables")
+}
+
+Component(tunnelLink, "Encrypted Tunnel", "Reverse SSH / Tailscale", "Outbound connection that binds the API proxy to SQL Server")
+
+Rel(airflowOrch, dataScripts, "Triggers synthetic batches")
+Rel(dataScripts, minioStore, "Writes raw + bronze files")
+Rel(airflowOrch, duckdbStage, "Schedules ingestion transformations")
+Rel(duckdbStage, dbtModels, "Feeds conformed tables")
+Rel(dbtModels, sqlGold, "Publishes gold-layer marts")
+Rel(apiLayer, sqlGold, "Runs read-only parametrized queries", "TDS via tunnel")
+Rel(sqlGold, apiLayer, "Returns aggregated result sets")
+Rel(apiLayer, streamlitUi, "Delivers compressed JSON/Arrow data", "HTTPS")
+Rel(streamlitUi, apiLayer, "Applies filters + requests data", "HTTPS")
+Rel(apiLayer, tunnelLink, "Uses encrypted channel", "Outbound VPN")
+Rel(tunnelLink, sqlGold, "Carries SQL traffic securely")
+
+SHOW_LEGEND()
+@enduml
