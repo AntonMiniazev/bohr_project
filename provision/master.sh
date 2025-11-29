@@ -56,6 +56,7 @@ done
 echo ">> Applying Calico configuration with custom CIDR ($CALICO_CIDR)"
 curl -LO $CALICO_CONF_URL
 sed -i "s|cidr: 192\.168\.0\.0/16|cidr: ${CALICO_CIDR}|g" custom-resources.yaml
+sed -i 's|nodeSelector: all()|nodeSelector: all()\n    nodeAddressAutodetectionV4:\n      interface: ${CALICO_INTERFACE}|' custom-resources.yaml
 sudo -u vagrant kubectl apply -f custom-resources.yaml
 
 echo ">> Installing local-path-provisioner"
