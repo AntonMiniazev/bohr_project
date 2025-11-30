@@ -1,0 +1,8 @@
+services:
+  api-proxy:
+    image: ghcr.io/antonminiazev/bohr-sql-proxy:latest
+    env_file:
+      - /opt/api-proxy/.env
+    ports:
+      - "8080:8000"
+    restart: unless-stopped

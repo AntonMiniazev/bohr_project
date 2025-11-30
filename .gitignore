@@ -4,6 +4,9 @@
 .venv/
 .vscode/
 AGENTS.md
+.python-version
+main.py
+pyproject.toml
 
 # =========================
 # Secrets / Config
@@ -13,3 +16,4 @@ data_source/.env
 *.dec.yaml
 secret_enc/
 .secret_enc/
+api_proxy/.env

@@ -1,0 +1,1 @@
+"""FastAPI SQL proxy package."""
