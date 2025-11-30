@@ -11,13 +11,13 @@ api_proxy/
     config.py
     database.py
     main.py
-  requirements.txt
-  .env.example
+  Dockerfile
+  README.md
 ```
 
 ## Prerequisites
 
-- Python 3.11+ on the Windows working machine (local development) or on whichever host will run the proxy.
+- Python 3.12+ on the Windows working machine (local development) or on whichever host will run the proxy.
 - [uv](https://github.com/astral-sh/uv) CLI for managing virtual environments and dependencies. Install once on Windows:
   ```powershell
   pip install uv
@@ -29,12 +29,18 @@ api_proxy/
 
 ## Configuration
 
-Copy the example env file and fill it in. This stays local for development; production secrets live on the host under `/opt/api-proxy/.env`.
+Create a local `.env` under `api_proxy/` (git-ignored) for development. Production secrets live only on `/opt/api-proxy/.env` in the Hetzner host.
 
 ```bash
-# VS Code bash terminal (Windows dev box)
-cd /c/Users/likelol/Projects/bohr_project/api_proxy
-cp .env.example .env
+cat <<'EOF' > /c/Users/likelol/Projects/bohr_project/api_proxy/.env
+SQL_SERVER_HOST=100.85.35.82
+SQL_SERVER_PORT=14330
+SQL_SERVER_DB=Ampere
+SQL_SERVER_USER=sa
+SQL_SERVER_PASSWORD=***replace***
+SQL_QUERY_LIMIT=100
+SQL_TEST_QUERY=SELECT TOP (:limit) * FROM [reporting].[dim_stores]
+EOF
 ```
 
 Key variables:
@@ -52,16 +58,17 @@ All credentials stay in `.env` (listed in `.gitignore`).
 
 ## Local run & validation
 
-1. **Install dependencies with uv** (VS Code bash terminal on Windows with venv auto-activation):
+1. **Install dependencies with uv** (run from the repo root so `pyproject.toml` is discovered):
    ```bash
-   cd /c/Users/likelol/Projects/bohr_project/api_proxy
+   cd /c/Users/likelol/Projects/bohr_project
    uv venv                # creates .venv next to the project
    source .venv/Scripts/activate
-   uv pip sync requirements.txt
+   uv sync
    ```
 
 2. **Start FastAPI** (same bash terminal, venv already active):
    ```bash
+   cd /c/Users/likelol/Projects/bohr_project/api_proxy
    uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
@@ -81,7 +88,7 @@ All credentials stay in `.env` (listed in `.gitignore`).
 
 ### Continuous build
 
-`.github/workflows/build-api-proxy.yml` builds the `api_proxy` Docker image and pushes it to `ghcr.io/<repo-owner>/bohr-sql-proxy` on every push.
+`.github/workflows/build-api-proxy.yml` builds the Docker image with `uv sync` (using `pyproject.toml` + `uv.lock`) and pushes it to `ghcr.io/<repo-owner>/bohr-sql-proxy` on every push.
 
 ### Manual run on Hetzner host
 

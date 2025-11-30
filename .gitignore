@@ -6,7 +6,6 @@
 AGENTS.md
 .python-version
 main.py
-pyproject.toml
 
 # =========================
 # Secrets / Config
