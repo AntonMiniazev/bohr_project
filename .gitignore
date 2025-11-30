@@ -5,7 +5,7 @@
 .vscode/
 AGENTS.md
 .python-version
-main.py
+/main.py
 
 # =========================
 # Secrets / Config
@@ -16,3 +16,5 @@ data_source/.env
 secret_enc/
 .secret_enc/
 api_proxy/.env
+__pycache__/
+*.pyc
