@@ -29,3 +29,4 @@ class Settings:
     )
     odbc_driver: str = os.getenv("SQL_ODBC_DRIVER", "ODBC Driver 18 for SQL Server")
     request_timeout_seconds: float = float(os.getenv("REQUEST_TIMEOUT_SECONDS", "15"))
+    api_key: str = _require("API_KEY")

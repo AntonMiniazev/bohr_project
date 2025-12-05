@@ -53,6 +53,7 @@ Key variables:
 | `SQL_SERVER_USER` / `SQL_SERVER_PASSWORD` | SQL Server credentials (never commit). |
 | `SQL_QUERY_LIMIT` | Max rows returned per call; enforced server-side. |
 | `SQL_TEST_QUERY` | Parameterized query used by `/test-query`. Defaults to a placeholder view; adjust to one of your curated views. |
+| `API_KEY` | Secret string required in the `X-API-Key` header for every request. |
 
 All credentials stay in `.env` (listed in `.gitignore`).
 
@@ -74,8 +75,8 @@ All credentials stay in `.env` (listed in `.gitignore`).
 
 3. **Smoke tests** (from the same machine, still on Tailscale):
    ```bash
-   curl http://127.0.0.1:8000/health
-   curl http://127.0.0.1:8000/test-query
+   curl -H "X-API-Key: $API_KEY" http://127.0.0.1:8000/health
+   curl -H "X-API-Key: $API_KEY" http://127.0.0.1:8000/test-query
    ```
 
    The second call returns JSON with a `rows` array limited by `SQL_QUERY_LIMIT`.
@@ -115,8 +116,8 @@ All credentials stay in `.env` (listed in `.gitignore`).
 
 3. Verify:
    ```bash
-   curl http://localhost:8080/health
-   curl http://localhost:8080/test-query
+   curl -H "X-API-Key: $API_KEY" http://localhost:8080/health
+   curl -H "X-API-Key: $API_KEY" http://localhost:8080/test-query
    ```
 
 ## Next steps
