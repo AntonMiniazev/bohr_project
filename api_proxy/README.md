@@ -120,6 +120,31 @@ All credentials stay in `.env` (listed in `.gitignore`).
    curl -H "X-API-Key: $API_KEY" http://localhost:8080/test-query
    ```
 
+## API endpoints
+
+All endpoints require the `X-API-Key` header and support ISO date filters (`YYYY-MM-DD`). When dates are omitted, the backend defaults to the last 30 days ending today. `store_name` / `zone_name` filters accept exact matches.
+
+- `GET /metrics/summary`
+  - Returns aggregate metrics `{sales, cost_of_sales, gross_profit}` after filters.
+  - Example:
+    ```bash
+    curl -H "X-API-Key: $API_KEY" \
+      "https://api.ampere-data.work/metrics/summary?start_date=2025-10-01&end_date=2025-10-31&zone_name=North"
+    ```
+
+- `GET /metrics/sales-trends`
+  - Query params: `granularity=month|day` (default month) plus standard filters.
+  - Response contains `store_rows` (sales per store per period) and `summary_rows` (overall totals with average order value) so the UI can render stacked bars + line.
+
+- `GET /metrics/top-stores`
+  - Query params: `limit` (default 5, max 25) plus filters.
+  - Returns ordered rows with `store_name`, `avg_order_value`, `total_sales`, `total_gp`.
+
+- `GET /filters/options`
+  - Returns `{stores: [...], zones: [...]}` for populating dropdown filters.
+
+Use these endpoints from the Streamlit app to power all visuals described in `data_structure.md`.
+
 ## Next steps
 
 - Configure TLS/front-door proxy on the Hetzner host so the public endpoint is HTTPS-only.

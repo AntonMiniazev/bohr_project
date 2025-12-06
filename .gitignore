@@ -18,3 +18,4 @@ secret_enc/
 api_proxy/.env
 __pycache__/
 *.pyc
+streamlit_app/
