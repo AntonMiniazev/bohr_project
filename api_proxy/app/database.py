@@ -68,19 +68,18 @@ SALES_TRENDS_STORE_SQL = text(
           AND (:zone_name IS NULL OR s.zone_name = :zone_name)
     )
     SELECT
-        CASE
-            WHEN :granularity = 'day' THEN CONVERT(date, filtered.order_date)
-            ELSE DATEFROMPARTS(YEAR(filtered.order_date), MONTH(filtered.order_date), 1)
-        END AS period_start,
+        period.period_start,
         COALESCE(filtered.store_name, 'Unknown') AS store_name,
         SUM(filtered.total_amount) AS total_sales
     FROM filtered
-    GROUP BY CASE
+    CROSS APPLY (
+        SELECT CASE
             WHEN :granularity = 'day' THEN CONVERT(date, filtered.order_date)
             ELSE DATEFROMPARTS(YEAR(filtered.order_date), MONTH(filtered.order_date), 1)
-        END,
-        COALESCE(filtered.store_name, 'Unknown')
-    ORDER BY period_start, store_name
+        END AS period_start
+    ) AS period
+    GROUP BY period.period_start, COALESCE(filtered.store_name, 'Unknown')
+    ORDER BY period.period_start, store_name
     """
 )
 
@@ -109,10 +108,7 @@ SALES_TRENDS_SUMMARY_SQL = text(
           AND (:zone_name IS NULL OR s.zone_name = :zone_name)
     )
     SELECT
-        CASE
-            WHEN :granularity = 'day' THEN CONVERT(date, filtered.order_date)
-            ELSE DATEFROMPARTS(YEAR(filtered.order_date), MONTH(filtered.order_date), 1)
-        END AS period_start,
+        period.period_start,
         SUM(filtered.total_amount) AS total_sales,
         COUNT(DISTINCT filtered.order_id) AS total_orders,
         CASE
@@ -120,11 +116,14 @@ SALES_TRENDS_SUMMARY_SQL = text(
             ELSE SUM(filtered.total_amount) / COUNT(DISTINCT filtered.order_id)
         END AS avg_order_value
     FROM filtered
-    GROUP BY CASE
+    CROSS APPLY (
+        SELECT CASE
             WHEN :granularity = 'day' THEN CONVERT(date, filtered.order_date)
             ELSE DATEFROMPARTS(YEAR(filtered.order_date), MONTH(filtered.order_date), 1)
-        END
-    ORDER BY period_start
+        END AS period_start
+    ) AS period
+    GROUP BY period.period_start
+    ORDER BY period.period_start
     """
 )
 
