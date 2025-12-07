@@ -31,3 +31,4 @@ env_files/
 *.dec.yaml
 secret_enc/
 .secret_enc/
+AGENTS.md
