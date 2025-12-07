@@ -1,7 +1,12 @@
 # Architecture Documentation
 
 ## Purpose
-This directory captures production-style C4 documentation for the Streamlit reporting service. The goal is to communicate how the Developer operates the home-lab data platform, how synthetic data is transformed into curated SQL Server marts, and how the public dashboard consumes those metrics without exposing private infrastructure.
+Prepared C4-like documentation for the self-service project backend on the home-lab. The goal is to communicate how the Developer operates the home-lab data platform, how synthetic data is transformed into curated SQL Server marts, and how the public dashboard consumes those metrics without exposing private infrastructure.
+Directory covers architecture of three projects:
+- [Ampere](https://github.com/AntonMiniazev/ampere_project): specifies on ETL processes
+- [Bohr](https://github.com/AntonMiniazev/bohr_project): specifies on backend deployment on home-lab
+- [CurrieM](https://github.com/AntonMiniazev/curiem_project): specifies on external reporting
+
 
 ## Diagram Inventory
 | View | Focus | Source | Rendered Output |
