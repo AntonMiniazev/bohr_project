@@ -1,0 +1,3 @@
+creation_rules:
+  - azure_keyvault:
+      - "https://az-ampere-kv.vault.azure.net/keys/sops-key"

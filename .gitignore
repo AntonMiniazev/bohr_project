@@ -1,21 +1,33 @@
 # =========================
-# Virtual environments / IDE
+# OS / IDE
 # =========================
-.venv/
+.DS_Store
+Thumbs.db
 .vscode/
-AGENTS.md
-.python-version
-/main.py
+.idea/
 
 # =========================
-# Secrets / Config
+# Python
 # =========================
-data_source/.env
+.venv/
+__pycache__/
+*.py[cod]
+.python-version
+
+# =========================
+# Terraform
+# =========================
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+crash.log
+crash.*.log
+
+# =========================
+# Secrets / local env
+# =========================
+env_files/
 *.yaml.dec
 *.dec.yaml
 secret_enc/
 .secret_enc/
-api_proxy/.env
-__pycache__/
-*.pyc
-streamlit_app/

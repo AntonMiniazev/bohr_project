@@ -1,0 +1,77 @@
+bases:
+  - environments.yaml
+
+helmDefaults:
+  wait: true
+  timeout: 600
+
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: apache-airflow
+    url: https://airflow.apache.org
+  - name: kedacore
+    url: https://kedacore.github.io/charts
+
+releases:
+  - name: keda
+    chart: kedacore/keda
+    version: 2.16.0
+    namespace: keda
+    createNamespace: true
+    labels:
+      app: keda
+      tier: infra
+    values:
+      - services/keda/keda.values.yaml.gotmpl
+
+  - name: postgresql
+    chart: ./services/postgresql
+    namespace: ampere
+    createNamespace: true
+    labels:
+      app: postgresql
+      tier: database
+    values:
+      - services/postgresql/postgresql.values.yaml.gotmpl
+    secrets:
+      - services/postgresql/postgresql.credentials.yaml
+
+  - name: minio
+    chart: ./services/minio
+    namespace: ampere
+    createNamespace: true
+    labels:
+      app: minio
+      tier: storage
+    values:
+      - services/minio/minio.values.yaml.gotmpl
+    hooks:
+      - events: ["preapply"]
+        command: "bash"
+        args:
+          - "-c"
+          - "sops -d services/minio/minio.credentials.yaml | kubectl apply -n ampere -f -"
+
+  - name: airflow
+    chart: apache-airflow/airflow
+    version: 1.18.0
+    namespace: ampere
+    createNamespace: true
+    labels:
+      app: airflow
+      tier: workflow
+    values:
+      - services/airflow/airflow.values.yaml.gotmpl
+    secrets:
+      - services/airflow/airflow.credentials.yaml
+      - services/airflow/airflow.webserver-secret.yaml
+    hooks:
+      - events: ["preapply"]
+        command: "bash"
+        args:
+          - "-c"
+          - "sops -d services/airflow/git-credentials.yaml | kubectl apply -n ampere -f -"
+    needs:
+      - keda/keda
+      - "ampere/postgresql"

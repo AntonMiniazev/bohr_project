@@ -1,0 +1,12 @@
+{{- if .Values.initdbScripts }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "postgresql.name" . }}-initdb
+  namespace: {{ .Release.Namespace }}
+data:
+{{- range $name, $content := .Values.initdbScripts }}
+  {{ $name }}: |-
+{{ tpl $content $ | indent 4 }}
+{{- end }}
+{{- end }}

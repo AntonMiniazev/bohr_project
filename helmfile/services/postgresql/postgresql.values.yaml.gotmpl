@@ -1,0 +1,50 @@
+fullnameOverride: {{ .Environment.Values.postgresql.host }}
+
+image:
+  repository: {{ .Environment.Values.postgresql.image.repository }}
+  tag: {{ .Environment.Values.postgresql.image.tag | quote }}
+  pullPolicy: {{ .Environment.Values.postgresql.image.pullPolicy }}
+
+service:
+  name: {{ .Environment.Values.postgresql.host }}
+  type: NodePort
+  port: {{ .Environment.Values.postgresql.port }}
+  nodePort: {{ .Environment.Values.postgresql.nodeport }}
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClassName: {{ .Environment.Values.global.storageClass }}
+
+nodeSelector:
+  kubernetes.io/hostname: {{ .Environment.Values.postgresql.node }}
+
+auth:
+  username: postgres
+
+users:
+  airflow:
+    username: {{ .Environment.Values.postgresql.airflowUser }}
+    database: {{ .Environment.Values.postgresql.airflowDatabase }}
+
+appUsers:
+  operational_database:
+    user: {{ .Environment.Values.postgresql.operationalUser }}
+    database: {{ .Environment.Values.postgresql.operationalDatabase }}
+
+initdbScripts:
+  init.sql: |-
+    CREATE USER {{ .Environment.Values.postgresql.airflowUser }} WITH PASSWORD '{{ "{{ .Values.auth.password }}" }}';
+    CREATE DATABASE {{ .Environment.Values.postgresql.airflowDatabase }} OWNER {{ .Environment.Values.postgresql.airflowUser }};
+    GRANT ALL PRIVILEGES ON DATABASE {{ .Environment.Values.postgresql.airflowDatabase }} TO {{ .Environment.Values.postgresql.airflowUser }};
+    \connect {{ .Environment.Values.postgresql.airflowDatabase }}
+    ALTER SCHEMA public OWNER TO {{ .Environment.Values.postgresql.airflowUser }};
+    GRANT ALL ON SCHEMA public TO {{ .Environment.Values.postgresql.airflowUser }};
+
+    CREATE USER {{ .Environment.Values.postgresql.operationalUser }} WITH PASSWORD '{{ "{{ .Values.appUsers.operational_database.password }}" }}';
+    CREATE DATABASE {{ .Environment.Values.postgresql.operationalDatabase }} OWNER {{ .Environment.Values.postgresql.operationalUser }};
+    GRANT ALL PRIVILEGES ON DATABASE {{ .Environment.Values.postgresql.operationalDatabase }} TO {{ .Environment.Values.postgresql.operationalUser }};
+    \connect {{ .Environment.Values.postgresql.operationalDatabase }}
+    ALTER SCHEMA public OWNER TO {{ .Environment.Values.postgresql.operationalUser }};
+    GRANT ALL ON SCHEMA public TO {{ .Environment.Values.postgresql.operationalUser }};
+

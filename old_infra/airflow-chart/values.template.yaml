@@ -167,8 +167,3 @@ dagProcessor:
     periodSeconds: 60
     failureThreshold: 5
     initialDelaySeconds: 30
-
-logs:
-  persistence:
-    enabled: true
-    size: 5Gi

@@ -1,0 +1,31 @@
+namespace: {{ .Environment.Values.global.namespace }}
+replicaCount: 1
+image:
+  repository: {{ .Environment.Values.minio.repo }}
+  tag: {{ .Environment.Values.minio.release }}
+service:
+  type: NodePort
+  ports:
+    - name: s3
+      port: 9000
+      targetPort: 9000
+      nodePort: 30091
+    - name: console
+      port: 9001
+      targetPort: 9001
+      nodePort: 30090
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+persistence:
+  size: 5Gi
+  storageClassName: {{ .Environment.Values.global.storageClass }}
+users:
+  - accessKey: externalSecret
+    existingSecret: minio-creds
+nodeSelector:
+  kubernetes.io/hostname: {{ .Environment.Values.minio.node }}

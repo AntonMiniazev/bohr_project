@@ -3,41 +3,37 @@
 LAYOUT_WITH_LEGEND()
 HIDE_STEREOTYPE()
 
-System_Boundary(home, "Home Kubernetes Cluster") {
-    Container_Boundary(bronze, "Synthetic Data & Bronze Layer") {
-        Component(dataScripts, "Data Generator", "Python jobs", "Creates synthetic orders, clients, and fulfillment events")
-        Component(minioStore, "MinIO Buckets", "Object storage", "Stores raw & bronze JSON/Parquet files")
-    }
+Person(dev, "Developer", "Operates provisioning and service delivery")
 
-    Container_Boundary(silver, "Processing & Silver Layer") {
-        Component(airflowOrch, "Airflow DAGs", "Apache Airflow", "Schedules generators, DuckDB steps, and dbt runs")
-        Component(duckdbStage, "DuckDB Processing", "DuckDB", "Transforms bronze data into conformed silver tables")
-        Component(dbtModels, "dbt Models", "dbt", "Implements business logic and publishes gold models")
-    }
-
-    Container_Boundary(gold, "Serving Layer") {
-        Component(sqlGold, "SQL Server Views", "MS SQL Server", "Curated, index-friendly marts for public analytics")
-    }
+Container_Boundary(provisioning, "Provisioning Pipeline") {
+    Component(terraform, "Terraform", "CLI", "Renders templates and creates libvirt VMs")
+    Component(cloudinit, "Cloud-Init", "Bootstrap", "Configures networking and OS prerequisites")
+    Component(kubeadm, "kubeadm", "Bootstrap", "Initializes control plane and joins workers")
+    Component(cilium, "Cilium", "CNI", "Enables pod networking")
+    Component(localpath, "local-path-provisioner", "StorageClass", "Provides default storage")
 }
 
-System_Boundary(publicLayer, "Public Access") {
-    Component(apiLayer, "FastAPI Aggregator", "FastAPI", "Exposes parametrized endpoints that return aggregated slices")
-    Component(streamlitUi, "Streamlit Dashboard", "Streamlit", "Public analytics UI with interactive filters, charts, and tables")
+Container_Boundary(services, "Service Delivery") {
+    Component(helmfile, "Helmfile", "CLI", "Applies releases and hooks")
+    Component(postgres, "PostgreSQL", "Chart", "Metadata and operational databases")
+    Component(minio, "MinIO", "Chart", "S3-compatible object storage")
+    Component(airflow, "Airflow", "Chart", "Workflow orchestration")
+    Component(keda, "KEDA", "Chart", "Autoscaling for workers")
 }
 
-Component(tunnelLink, "Encrypted Tunnel", "Reverse SSH / Tailscale", "Outbound connection that binds the API proxy to SQL Server")
-
-Rel(airflowOrch, dataScripts, "Triggers synthetic batches")
-Rel(dataScripts, minioStore, "Writes raw + bronze files")
-Rel(airflowOrch, duckdbStage, "Schedules ingestion transformations")
-Rel(duckdbStage, dbtModels, "Feeds conformed tables")
-Rel(dbtModels, sqlGold, "Publishes gold-layer marts")
-Rel(apiLayer, sqlGold, "Runs read-only parametrized queries", "TDS via tunnel")
-Rel(sqlGold, apiLayer, "Returns aggregated result sets")
-Rel(apiLayer, streamlitUi, "Delivers compressed JSON/Arrow data", "HTTPS")
-Rel(streamlitUi, apiLayer, "Applies filters + requests data", "HTTPS")
-Rel(apiLayer, tunnelLink, "Uses encrypted channel", "Outbound VPN")
-Rel(tunnelLink, sqlGold, "Carries SQL traffic securely")
+Rel(dev, terraform, "Runs provisioning")
+Rel(terraform, cloudinit, "Injects userdata")
+Rel(cloudinit, kubeadm, "Installs and configures Kubernetes")
+Rel(kubeadm, cilium, "Applies CNI")
+Rel(kubeadm, localpath, "Applies storage class")
+Rel(dev, helmfile, "Runs service deployment")
+Rel(helmfile, postgres, "Installs release")
+Rel(helmfile, minio, "Installs release")
+Rel(helmfile, keda, "Installs release")
+Rel(helmfile, airflow, "Installs release")
+Rel(airflow, postgres, "Uses metadata DB")
+Rel(airflow, minio, "Reads/writes objects")
+Rel(keda, airflow, "Scales workers")
 
 SHOW_LEGEND()
 @enduml

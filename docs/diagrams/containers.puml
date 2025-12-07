@@ -3,41 +3,35 @@
 LAYOUT_WITH_LEGEND()
 HIDE_STEREOTYPE()
 
-Person(user, "External Viewer", "Any browser user")
-Person(dev, "Developer (Project Owner)", "Operates releases and home-lab automation")
+Person(dev, "Developer", "Runs Terraform and Helmfile deployments")
 
-System_Boundary(cloud, "Streamlit Community Cloud") {
-    Container(streamlitApp, "Streamlit Dashboard", "Python + Streamlit", "Renders KPI cards, charts, and tables; caches proxy responses")
+System_Ext(keyvault, "Azure Key Vault", "KMS for SOPS encryption keys")
+System_Ext(ghcr, "Container Registry", "Stores service images")
+
+System_Boundary(tooling, "Deployment Tooling") {
+    Container(helmfile, "Helmfile + SOPS", "CLI", "Applies Helm charts and decrypts secrets")
 }
 
-System_Boundary(public, "Public Layer") {
-    Container(apiProxy, "API Proxy", "Python + FastAPI", "Parametrized aggregation endpoints returning JSON/Arrow/Parquet")
-    Container(tunnelSvc, "Tunnel Connector", "Tailscale / reverse SSH", "Maintains outbound-only connectivity into the home cluster")
+System_Boundary(home, "Home Lab") {
+    Container(kvmhost, "KVM/libvirt Host", "Ubuntu + libvirt", "Runs the VM fleet")
+
+    Container_Boundary(cluster, "Internal Kubernetes Cluster") {
+        Container(cilium, "Cilium", "CNI", "Pod networking and service routing")
+        Container(localpath, "local-path-provisioner", "StorageClass", "Default local persistent volumes")
+        Container(postgres, "PostgreSQL", "Database", "Metadata and operational databases")
+        Container(minio, "MinIO", "Object storage", "S3-compatible buckets")
+        Container(airflow, "Airflow", "Workflow engine", "Schedules and executes pipelines")
+        Container(keda, "KEDA", "Autoscaler", "Scales Airflow workers")
+    }
 }
 
-System_Boundary(cluster, "Home Kubernetes Cluster") {
-    Container(airflow, "Airflow", "Apache Airflow", "Triggers synthetic data generation and orchestrates dbt runs")
-    Container(dataGen, "Synthetic Data Generators", "Python jobs", "Produce orders, clients, items, deliveries, etc.")
-    Container(minio, "MinIO", "Object Storage", "Holds bronze/raw JSON & Parquet batches")
-    Container(duckdb, "DuckDB + dbt", "DuckDB + dbt", "Executes silver transformations and business logic models")
-    Container(sqlserver, "SQL Server", "MS SQL Server", "Stores gold-layer datamarts exposed via views/SPs")
-    Container(metrics, "Metrics + Future Logging", "metrics-server / Loki+Promtail (planned)", "Resource metrics and aggregated logs for troubleshooting")
-}
-
-Rel(user, streamlitApp, "Explores analytics", "HTTPS")
-Rel(dev, streamlitApp, "Publishes UI releases", "CI/CD")
-Rel(streamlitApp, apiProxy, "Fetches filtered datasets", "HTTPS requests")
-Rel(dev, apiProxy, "Maintains proxy endpoints", "GitOps")
-Rel(apiProxy, tunnelSvc, "Routes read-only queries", "Encrypted channel")
-Rel(tunnelSvc, sqlserver, "Executes parametrized SQL", "TDS over tunnel")
-Rel(dev, airflow, "Authors orchestration DAGs", "Automation")
-Rel(dataGen, minio, "Stores bronze batches")
-Rel(airflow, dataGen, "Schedules synthetic workloads")
-Rel(airflow, duckdb, "Triggers dbt models")
-Rel(duckdb, sqlserver, "Publishes curated tables")
-Rel(minio, duckdb, "Feeds bronze -> silver transformations")
-Rel(metrics, airflow, "Collects runtime metrics")
-Rel(metrics, sqlserver, "Monitors resource usage")
+Rel(dev, helmfile, "Runs deployment commands")
+Rel(helmfile, cluster, "Applies releases", "Helm")
+Rel(helmfile, keyvault, "Decrypts secrets", "SOPS")
+Rel(cluster, ghcr, "Pulls images", "Registry")
+Rel(airflow, postgres, "Stores metadata", "SQL")
+Rel(airflow, minio, "Reads/writes objects", "S3")
+Rel(keda, airflow, "Scales workers", "KEDA API")
 
 SHOW_LEGEND()
 @enduml

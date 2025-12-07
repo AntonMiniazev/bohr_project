@@ -1,0 +1,51 @@
+{
+  "name": "ampere-devcontainer",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "target": "dev"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    }
+  },
+  "postCreateCommand": "npm i -g @openai/codex@latest",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+        "python.terminal.activateEnvironment": true
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.vscode-typescript-next"
+      ]
+    }
+  },
+  "postStartCommand": "echo 'source /workspace/.venv/bin/activate' >> /root/.bashrc",
+  "remoteUser": "root",
+  "runArgs": [
+    "--network",
+    "host",
+    "--add-host=minio.local:192.168.1.29",
+    "--add-host=s3.minio.local:192.168.1.29"
+  ],
+  "containerEnv": {
+    "MINIO_S3_ENDPOINT": "http://s3.minio.local",
+    "MINIO_ACCESS_KEY": "likelol",
+    "MINIO_SECRET_KEY": "7454556qQ",
+    "MINIO_BUCKET_RAW": "ampere-prod-raw",
+    "MINIO_BUCKET_SILVER": "ampere-prod-silver",
+    "SA_PASSWORD": "7454556qQ!",
+    "MSSQL_USER": "sa",
+    "MSSQL_SQLALCHEMY_URL": "mssql+pyodbc://USER:PASS@ampere-k8s-node1,1433/BusinessLogic?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no&TrustServerCertificate=yes"
+  },
+  "mounts": [
+    "source=${env:USERPROFILE}/.kube,target=/home/vscode/.kube,type=bind,consistency=cached"
+  ],
+  "remoteEnv": {
+    "KUBECONFIG": "/home/vscode/.kube/config-ampere-devcontainer"
+  }
+}
