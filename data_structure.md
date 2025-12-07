@@ -11,7 +11,7 @@ Filters should affect all visuals where applicable
 
 ## Visuals in the report:
 1. Total sales and total orders by month with drill to days: maybe bar+line chart with period data at X-axis and Sales amount/Orders count at Y-axis and line with average order amount.
-2. Top performing stores: table with columns 'Store name', 'Average order value, $', 'Total sales, $', 'Total GP, $'
+2. Top performing stores: table with columns 'Store name', 'Average order value, ₣', 'Total sales, ₣', 'Total GP, ₣'
 
 # Data marts:
 - [Ampere].[reporting].[dim_clients]

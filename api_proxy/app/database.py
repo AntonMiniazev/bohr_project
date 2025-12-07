@@ -43,7 +43,8 @@ SUMMARY_SQL = text(
     SELECT
         COALESCE(SUM(total_amount), 0) AS sales,
         COALESCE(SUM(total_cost), 0) AS cost_of_sales,
-        COALESCE(SUM(total_amount - total_cost - tariff), 0) AS gross_profit
+        COALESCE(SUM(total_amount - total_cost - tariff), 0) AS gross_profit,
+        COUNT(DISTINCT order_id) AS total_orders
     FROM filtered
     """
 )
@@ -257,12 +258,13 @@ def run_sales_summary(filters: Dict[str, Any]) -> Dict[str, float]:
         row = conn.execute(SUMMARY_SQL, filters).mappings().fetchone()
 
     if not row:
-        return {"sales": 0.0, "cost_of_sales": 0.0, "gross_profit": 0.0}
+        return {"sales": 0.0, "cost_of_sales": 0.0, "gross_profit": 0.0, "total_orders": 0}
 
     return {
         "sales": _to_float(row["sales"]),
         "cost_of_sales": _to_float(row["cost_of_sales"]),
         "gross_profit": _to_float(row["gross_profit"]),
+        "total_orders": int(row["total_orders"]) if row["total_orders"] is not None else 0,
     }
 
 
@@ -301,6 +303,9 @@ def run_top_stores(filters: Dict[str, Any], limit: int) -> List[Dict[str, Any]]:
         row["avg_order_value"] = _to_float(row["avg_order_value"])
         row["total_sales"] = _to_float(row["total_sales"])
         row["total_gp"] = _to_float(row["total_gp"])
+        row["gross_profit_pct"] = (
+            (row["total_gp"] / row["total_sales"]) * 100 if row["total_sales"] not in (None, 0) else 0.0
+        )
     return rows
 
 

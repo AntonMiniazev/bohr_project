@@ -125,7 +125,7 @@ All credentials stay in `.env` (listed in `.gitignore`).
 All endpoints require the `X-API-Key` header and support ISO date filters (`YYYY-MM-DD`). When dates are omitted, the backend defaults to the last 30 days ending today. `store_name` / `zone_name` filters accept exact matches.
 
 - `GET /metrics/summary`
-  - Returns aggregate metrics `{sales, cost_of_sales, gross_profit}` after filters.
+  - Returns aggregate metrics `{sales, cost_of_sales, gross_profit, total_orders}` after filters.
   - Example:
     ```bash
     curl -H "X-API-Key: $API_KEY" \
@@ -138,7 +138,7 @@ All endpoints require the `X-API-Key` header and support ISO date filters (`YYYY
 
 - `GET /metrics/top-stores`
   - Query params: `limit` (default 5, max 25) plus filters.
-  - Returns ordered rows with `store_name`, `avg_order_value`, `total_sales`, `total_gp`.
+  - Returns ordered rows with `store_name`, `avg_order_value`, `total_sales`, `total_gp`, `gross_profit_pct`.
 
 - `GET /filters/options`
   - Returns `{stores: [...], zones: [...]}` for populating dropdown filters.
