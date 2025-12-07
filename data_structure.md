@@ -8,7 +8,6 @@
 Filters should affect all visuals where applicable
 1. Range of dates by order_date
 2. Store name
-3. Zone name
 
 ## Visuals in the report:
 1. Total sales and total orders by month with drill to days: maybe bar+line chart with period data at X-axis and Sales amount/Orders count at Y-axis and line with average order amount.

@@ -59,7 +59,6 @@ def _build_filters(
     start_date: Optional[str],
     end_date: Optional[str],
     store_name: Optional[str],
-    zone_name: Optional[str],
 ):
     today = date.today()
     default_end = today
@@ -77,7 +76,6 @@ def _build_filters(
         "start_date": start,
         "end_date": end,
         "store_name": _normalize_text(store_name),
-        "zone_name": _normalize_text(zone_name),
     }
 
 
@@ -86,7 +84,6 @@ def _filters_metadata(filters: dict) -> dict:
         "start_date": filters["start_date"].isoformat(),
         "end_date": filters["end_date"].isoformat(),
         "store_name": filters["store_name"],
-        "zone_name": filters["zone_name"],
     }
 
 
@@ -113,10 +110,9 @@ def metrics_summary(
     start_date: Optional[str] = Query(None, description="ISO date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="ISO date (YYYY-MM-DD)"),
     store_name: Optional[str] = Query(None),
-    zone_name: Optional[str] = Query(None),
     api_key: str = Depends(require_api_key),
 ):
-    filters = _build_filters(start_date, end_date, store_name, zone_name)
+    filters = _build_filters(start_date, end_date, store_name)
     summary = run_sales_summary(filters)
     return {"filters": _filters_metadata(filters), "summary": summary}
 
@@ -126,11 +122,10 @@ def sales_trends(
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
     store_name: Optional[str] = Query(None),
-    zone_name: Optional[str] = Query(None),
     granularity: str = Query("month", regex="^(day|month)$"),
     api_key: str = Depends(require_api_key),
 ):
-    filters = _build_filters(start_date, end_date, store_name, zone_name)
+    filters = _build_filters(start_date, end_date, store_name)
     granularity_normalized = granularity.lower()
     trend_payload = run_sales_trends(filters, granularity_normalized)
     return {
@@ -146,11 +141,10 @@ def top_stores(
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
     store_name: Optional[str] = Query(None),
-    zone_name: Optional[str] = Query(None),
     limit: int = Query(5, ge=1, le=25),
     api_key: str = Depends(require_api_key),
 ):
-    filters = _build_filters(start_date, end_date, store_name, zone_name)
+    filters = _build_filters(start_date, end_date, store_name)
     rows = run_top_stores(filters, limit)
     return {"filters": _filters_metadata(filters), "limit": limit, "rows": rows}
 
