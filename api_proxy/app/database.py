@@ -16,7 +16,7 @@ SUMMARY_SQL = text(
             MIN(store_name) AS store_name
         FROM Ampere.reporting.dim_stores
         GROUP BY store_id
-    ),    
+    ),
     WITH order_costs AS (
         SELECT
             order_id,
@@ -101,7 +101,7 @@ SALES_TRENDS_SUMMARY_SQL = text(
             MIN(store_name) AS store_name
         FROM Ampere.reporting.dim_stores
         GROUP BY store_id
-    ),    
+    ),
     WITH order_costs AS (
         SELECT
             order_id,
@@ -150,8 +150,8 @@ TOP_STORES_SQL = text(
             MIN(store_name) AS store_name
         FROM Ampere.reporting.dim_stores
         GROUP BY store_id
-    ),    
-    WITH order_costs AS (
+    ),
+    order_costs AS (
         SELECT
             order_id,
             SUM(total_cost) AS total_cost,
