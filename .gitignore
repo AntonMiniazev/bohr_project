@@ -19,3 +19,4 @@ api_proxy/.env
 __pycache__/
 *.pyc
 streamlit_app/
+nginx_ubuntu_host/
