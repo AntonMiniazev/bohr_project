@@ -20,3 +20,10 @@ __pycache__/
 *.pyc
 streamlit_app/
 nginx_ubuntu_host/
+env_files/
+api-host/
+helmfile/
+charts/
+Dockerfile
+.devcontainer/
+old_infra/
