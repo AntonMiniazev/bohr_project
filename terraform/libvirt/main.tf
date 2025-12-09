@@ -16,29 +16,33 @@ resource "libvirt_volume" "ubuntu_base" {
   source = var.base_image_path
 }
 
-data "templatefile" "kubeadm_init" {
-  template = "${path.module}/templates/kubeadm/kubeadm-init.yaml.tpl"
-  vars = {
-    control_plane_ip  = var.control_plane.ip
-    pod_network_cidr  = var.pod_network_cidr
-    service_subnet    = var.service_subnet
-    k8s_version       = var.k8s_version
-  }
+locals {
+  kubeadm_init = templatefile(
+    "${path.module}/templates/kubeadm/kubeadm-init.yaml.tpl",
+    {
+      control_plane_ip  = var.control_plane.ip
+      pod_network_cidr  = var.pod_network_cidr
+      service_subnet    = var.service_subnet
+      k8s_version       = var.k8s_version
+    }
+  )
 }
 
-data "templatefile" "cloudinit_cp" {
-  template = "${path.module}/templates/cloud-init/control-plane.tpl"
-  vars = {
-    hostname         = var.control_plane.hostname
-    ip               = var.control_plane.ip
-    ssh_keys         = var.ssh_public_keys
-    gateway          = var.network_gateway
-    dns              = var.network_dns
-    prefix           = var.network_prefix
-    join_bind        = var.join_http_bind_address
-    join_port        = var.join_http_port
-    kubeadm_init_yaml = indent(6, data.templatefile.kubeadm_init.rendered)
-  }
+locals {
+  cloudinit_cp = templatefile(
+    "${path.module}/templates/cloud-init/control-plane.tpl",
+    {
+      hostname         = var.control_plane.hostname
+      ip               = var.control_plane.ip
+      ssh_keys         = var.ssh_public_keys
+      gateway          = var.network_gateway
+      dns              = var.network_dns
+      prefix           = var.network_prefix
+      join_bind        = var.join_http_bind_address
+      join_port        = var.join_http_port
+      kubeadm_init_yaml = indent(6, local.kubeadm_init)
+    }
+  )
 }
 
 data "http" "join_token" {
@@ -83,7 +87,7 @@ resource "libvirt_volume" "control_plane_disk" {
 
 resource "libvirt_cloudinit_disk" "control_plane_seed" {
   name      = "${var.control_plane.hostname}-seed.iso"
-  user_data = data.templatefile.cloudinit_cp.rendered
+  user_data = local.cloudinit_cp
 }
 
 resource "libvirt_domain" "control_plane" {
@@ -101,6 +105,21 @@ resource "libvirt_domain" "control_plane" {
   }
 
   cloudinit = libvirt_cloudinit_disk.control_plane_seed.id
+}
+
+resource "time_sleep" "wait_for_join" {
+  depends_on = [libvirt_domain.control_plane]
+  create_duration = "60s"
+}
+
+data "http" "join_token" {
+  url = "http://${var.control_plane.ip}:${var.join_http_port}/join-token.txt"
+  depends_on = [time_sleep.wait_for_join]
+}
+
+data "http" "ca_hash" {
+  url = "http://${var.control_plane.ip}:${var.join_http_port}/ca-hash.txt"
+  depends_on = [time_sleep.wait_for_join]
 }
 
 resource "libvirt_volume" "worker_disk" {

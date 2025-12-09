@@ -112,6 +112,9 @@ runcmd:
   - systemctl restart containerd
   - systemctl enable kubeadm-init.service
   - systemctl start kubeadm-init.service
+  - curl -LO https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml
+  - sed -i "s#autodetectionMethod: .*#autodetectionMethod: interface=${calico_interface}#" calico.yaml
+  - kubectl apply -f calico.yaml
   - systemctl enable kubeadm-write-join.service
   - systemctl enable kubeadm-join-http.service
   - systemctl start kubeadm-write-join.service

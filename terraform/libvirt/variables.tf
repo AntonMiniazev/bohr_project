@@ -78,6 +78,11 @@ variable "service_subnet" {
   default     = "10.96.0.0/12"
 }
 
+variable "calico_interface" { 
+  type = string 
+  default = "ens3" 
+}
+
 variable "k8s_version" {
   description = "Kubernetes version string for kubeadm (e.g., stable or v1.31.0)"
   type        = string
