@@ -45,18 +45,6 @@ locals {
   )
 }
 
-data "http" "join_token" {
-  url = "http://${var.control_plane.ip}:${var.join_http_port}/join-token.txt"
-
-  depends_on = [libvirt_domain.control_plane]
-}
-
-data "http" "ca_hash" {
-  url = "http://${var.control_plane.ip}:${var.join_http_port}/ca-hash.txt"
-
-  depends_on = [libvirt_domain.control_plane]
-}
-
 locals {
   worker_user_data = {
     for name, cfg in var.worker_nodes :
