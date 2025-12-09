@@ -44,6 +44,18 @@ variable "network_prefix" {
   default     = 24
 }
 
+variable "storage_pool" {
+  description = "Libvirt storage pool name"
+  type        = string
+  default     = "default"
+}
+
+variable "calico_interface" {
+  description = "Interface name for Calico autodetection"
+  type        = string
+  default     = "ens3"
+}
+
 variable "control_plane" {
   description = "Control-plane definition"
   type = object({

@@ -11,6 +11,8 @@ ssh_public_keys = [
 network_gateway = "192.168.11.1"
 network_dns     = ["8.8.8.8", "8.8.4.4"]
 network_prefix  = 24
+storage_pool    = "default"
+calico_interface = "ens3"
 
 k8s_version      = "stable"
 pod_network_cidr = "10.10.0.0/16"

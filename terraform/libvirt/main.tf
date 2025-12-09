@@ -13,6 +13,7 @@ provider "libvirt" {
 
 resource "libvirt_volume" "ubuntu_base" {
   name   = "${var.project_name}-ubuntu-base"
+  pool   = var.storage_pool
   source = var.base_image_path
 }
 
@@ -40,6 +41,7 @@ locals {
       prefix           = var.network_prefix
       join_bind        = var.join_http_bind_address
       join_port        = var.join_http_port
+      calico_interface = var.calico_interface
       kubeadm_init_yaml = indent(6, local.kubeadm_init)
     }
   )
@@ -68,6 +70,7 @@ locals {
 
 resource "libvirt_volume" "control_plane_disk" {
   name           = "${var.control_plane.hostname}.qcow2"
+  pool           = var.storage_pool
   base_volume_id = libvirt_volume.ubuntu_base.id
   size           = var.control_plane.disk_gb * 1024 * 1024 * 1024
   format         = "qcow2"
@@ -82,6 +85,7 @@ resource "libvirt_domain" "control_plane" {
   name   = var.control_plane.hostname
   memory = var.control_plane.memory
   vcpu   = var.control_plane.vcpu
+  type   = "kvm"
 
   network_interface {
     network_name   = var.network_name
@@ -113,6 +117,7 @@ data "http" "ca_hash" {
 resource "libvirt_volume" "worker_disk" {
   for_each       = var.worker_nodes
   name           = "${each.key}.qcow2"
+  pool           = var.storage_pool
   base_volume_id = libvirt_volume.ubuntu_base.id
   size           = each.value.disk_gb * 1024 * 1024 * 1024
   format         = "qcow2"
@@ -130,6 +135,7 @@ resource "libvirt_domain" "worker" {
   name   = each.key
   memory = each.value.memory
   vcpu   = each.value.vcpu
+  type   = "kvm"
 
   network_interface {
     network_name   = var.network_name
