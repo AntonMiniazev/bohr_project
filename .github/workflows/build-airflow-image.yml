@@ -34,7 +34,7 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/airflow-ampere
           tags: |
             type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
 
       - name: Build and push Airflow image
         uses: docker/build-push-action@v6
