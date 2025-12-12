@@ -6,7 +6,6 @@ RUN pip install --no-cache-dir \
     apache-airflow-providers-amazon[apache.hive] \
     pyodbc~=5.2.0
 
-USER airflow
 # Use custom requirements
 COPY requirements.txt /requirements.txt
 
