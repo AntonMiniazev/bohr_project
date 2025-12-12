@@ -24,5 +24,6 @@ env_files/
 api-host/
 charts/
 Dockerfile
+!custom_images/airflow/Dockerfile
 .devcontainer/
 old_infra/
