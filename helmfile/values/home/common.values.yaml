@@ -10,3 +10,14 @@ nodes:
   postgresql: 192.168.11.101
   minio: 192.168.11.102
   airflow: 192.168.11.103
+
+airflow:
+  gitRepo: https://github.com/AntonMiniazev/ampere_project.git
+  host: "http://airflow.local"
+  node: ampere-k8s-node3
+  image: ghcr.io/antonminiazev/airflow-ampere
+
+minio:
+  node: ampere-k8s-node3
+  release: "RELEASE.2025-07-23T15-54-02Z"
+  s3_endpoint: "s3.minio.local"

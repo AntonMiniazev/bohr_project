@@ -13,18 +13,20 @@ env:
   - name: AIRFLOW__PROVIDERS_ODBC__ALLOW_DRIVER_IN_EXTRA
     value: "true"
 
+webserverSecretKeySecretName: my-airflow-secret
+
 images:
   airflow:
-    repository: an7on/airflow-mssql
+    repository: {{ .Environment.Values.airflow.image }}
     tag: latest
     pullPolicy: Always
 
 nodeSelector:
-  kubernetes.io/hostname: ampere-k8s-node3
+  kubernetes.io/hostname: {{ .Environment.Values.airflow.node }}
 
 workers:
   persistence:
-    storageClassName: local-path
+    storageClassName: {{ .Environment.Values.global.storageClass }}
   livenessProbe:
     timeoutSeconds: 60
     periodSeconds: 60
@@ -51,7 +53,7 @@ config:
 
 triggerer:
   persistence:
-    storageClassName: local-path
+    storageClassName: {{ .Environment.Values.global.storageClass }}
   replicas: 1
   resources:
     requests:
@@ -68,14 +70,14 @@ triggerer:
 
 redis:
   persistence:
-    storageClassName: local-path
+    storageClassName: {{ .Environment.Values.global.storageClass }}
 
 dags:
   persistence:
-    storageClassName: local-path
+    storageClassName: {{ .Environment.Values.global.storageClass }}
   gitSync:
     enabled: true
-    repo: https://github.com/AntonMiniazev/ampere_project.git
+    repo: {{ .Environment.Values.airflow.gitRepo }}
     branch: master
     subPath: "dags"
     credentialsSecret: git-credentials
@@ -86,7 +88,7 @@ logs:
   persistence:
     enabled: true
     size: 5Gi
-    storageClassName: local-path
+    storageClassName: {{ .Environment.Values.global.storageClass }}
 
 postgresql:
   enabled: false
@@ -135,7 +137,7 @@ apiServer:
         nodePort: 30080
   env:
     - name: AIRFLOW__API__BASE_URL
-      value: "http://airflow.local"
+      value: {{ .Environment.Values.airflow.host }}
     - name: AIRFLOW__API__WORKERS
       value: "1"
 

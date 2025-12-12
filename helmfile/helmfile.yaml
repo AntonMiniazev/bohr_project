@@ -14,6 +14,8 @@ repositories:
     url: https://charts.bitnami.com/bitnami
   - name: clastix
     url: https://clastix.github.io/charts
+  - name: kedacore
+    url: https://kedacore.github.io/charts
 
 releases:
   - name: local-path-provisioner
@@ -59,3 +61,11 @@ releases:
     needs:
       - kube-system/local-path-provisioner
       - "{{ .Environment.Values.global.namespace }}/postgresql"
+
+  - name: keda
+    chart: kedacore/keda
+    version: 2.16.0
+    namespace: keda
+    createNamespace: true
+    values:
+      - values/{{ .Environment.Name }}/keda.values.yaml

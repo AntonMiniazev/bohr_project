@@ -105,7 +105,7 @@ runcmd:
   - curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
   - echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
   - apt-get update
-  - apt-get install -y kubelet kubeadm kubectl containerd.io
+  - apt-get install -y kubelet kubeadm kubectl containerd.io helm sops gnupg
   - systemctl enable containerd
   - containerd config default | tee /etc/containerd/config.toml
   - sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
@@ -115,7 +115,9 @@ runcmd:
   - curl -LO https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml
   - sed -i "s#autodetectionMethod: .*#autodetectionMethod: interface=${calico_interface}#" calico.yaml
   - kubectl apply -f calico.yaml
+  - kubectl create secret generic my-webserver-secret --from-literal="webserver-secret-key=$(python3 -c 'import secrets; print(secrets.token_hex(16))')"
   - systemctl enable kubeadm-write-join.service
   - systemctl enable kubeadm-join-http.service
   - systemctl start kubeadm-write-join.service
   - systemctl start kubeadm-join-http.service
+  - helm plugin install https://github.com/jkroepke/helm-secrets --version v4.6.0 || true

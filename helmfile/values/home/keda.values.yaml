@@ -1,0 +1,1 @@
+watchNamespace: {{ .Environment.Values.global.namespace }}

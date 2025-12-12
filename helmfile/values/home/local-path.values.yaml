@@ -7,7 +7,7 @@ nodePathMap:
 
 storageClass:
   create: true
-  name: local-path
+  name: {{ .Environment.Values.global.storageClass }}
   defaultClass: true
   reclaimPolicy: Delete
   volumeBindingMode: WaitForFirstConsumer
