@@ -1,0 +1,61 @@
+helmDefaults:
+  wait: true
+  timeout: 600
+
+environments:
+  home:
+    values:
+      - values/home/common.values.yaml
+
+repositories:
+  - name: local-charts
+    url: file://../charts
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: clastix
+    url: https://clastix.github.io/charts
+
+releases:
+  - name: local-path-provisioner
+    chart: clastix/local-path-provisioner
+    version: 0.0.30
+    namespace: kube-system
+    createNamespace: true
+    values:
+      - values/{{ .Environment.Name }}/local-path.values.yaml
+
+  - name: postgresql
+    chart: bitnami/postgresql
+    version: 18.1.13
+    namespace: {{ .Environment.Values.global.namespace }}
+    createNamespace: true
+    values:
+      - values/{{ .Environment.Name }}/postgresql.values.yaml
+    secrets:
+      - secrets/{{ .Environment.Name }}/postgresql.credentials.yaml
+    needs:
+      - kube-system/local-path-provisioner
+
+  - name: minio
+    chart: local-charts/minio-chart
+    namespace: {{ .Environment.Values.global.namespace }}
+    createNamespace: true
+    values:
+      - values/{{ .Environment.Name }}/minio.values.yaml
+    secrets:
+      - secrets/{{ .Environment.Name }}/minio.credentials.yaml
+    needs:
+      - kube-system/local-path-provisioner
+
+  - name: airflow
+    chart: local-charts/airflow-chart
+    namespace: {{ .Environment.Values.global.namespace }}
+    createNamespace: true
+    values:
+      - values/{{ .Environment.Name }}/airflow.values.yaml
+    secrets:
+      - secrets/{{ .Environment.Name }}/airflow.credentials.yaml
+      - secrets/{{ .Environment.Name }}/airflow.git-credentials.yaml
+    needs:
+      - kube-system/local-path-provisioner
+      - "{{ .Environment.Values.global.namespace }}/postgresql"

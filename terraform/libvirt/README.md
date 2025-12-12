@@ -21,3 +21,4 @@ terraform apply -var-file=terraform.tfvars
 - Workers render kubeadm-join and retry join until the API is ready.
 - SSH keys support multiple authorized keys (list).
 - Network gateway/DNS/prefix come from tfvars; adjust to your LAN.
+- Control-plane cloud-init installs Calico; storage provisioner (local-path) is managed declaratively via Helmfile.
