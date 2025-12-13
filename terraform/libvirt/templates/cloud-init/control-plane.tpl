@@ -204,7 +204,6 @@ runcmd:
   - until systemctl is-active --quiet systemd-networkd containerd; do sleep 2; done
   - until ping -c1 8.8.8.8 >/dev/null 2>&1; do sleep 2; done
   - kubeadm config images pull --config /etc/kubernetes/kubeadm-init.yaml || true
-  - kubectl create secret generic my-webserver-secret --from-literal="webserver-secret-key=$(python3 -c 'import secrets; print(secrets.token_hex(16))')"
   - systemctl daemon-reload
   - systemctl enable kubeadm-init.service
   - systemctl enable kubeadm-write-join.service

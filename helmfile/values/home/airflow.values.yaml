@@ -13,7 +13,8 @@ env:
   - name: AIRFLOW__PROVIDERS_ODBC__ALLOW_DRIVER_IN_EXTRA
     value: "true"
 
-webserverSecretKeySecretName: my-airflow-secret
+
+webserverSecretKeySecretName: airflow-webserver-secret
 
 images:
   airflow:

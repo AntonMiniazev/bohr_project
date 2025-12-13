@@ -58,6 +58,7 @@ releases:
     secrets:
       - secrets/{{ .Environment.Name }}/airflow.credentials.yaml
       - secrets/{{ .Environment.Name }}/airflow.git-credentials.yaml
+      - secrets/{{ .Environment.Name }}/airflow.webserver-secret.yaml
     needs:
       - kube-system/local-path-provisioner
       - "{{ .Environment.Values.global.namespace }}/postgresql"
