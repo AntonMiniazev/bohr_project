@@ -1,6 +1,7 @@
 #cloud-config
 hostname: ${hostname}
 timezone: Europe/Belgrade
+ssh_pwauth: false
 users:
   - name: ampere
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -10,59 +11,69 @@ users:
 %{ for key in ssh_keys ~}
       - "${key}"
 %{ endfor ~}
-package_update: true
-package_upgrade: true
-packages:
-  - apt-transport-https
-  - ca-certificates
-  - curl
-  - gnupg
-  - software-properties-common
+
+package_update: false
+package_upgrade: false
+
 write_files:
-  - path: /etc/netplan/01-netcfg.yaml
-    permissions: '0644'
+  - path: /etc/netplan/99-netcfg.yaml
+    permissions: '0600'
     content: |
       network:
         version: 2
         ethernets:
-          ens3:
+          ${interface}:
             dhcp4: no
-            addresses: [${ip}/${prefix}]
-            gateway4: ${gateway}
+            addresses:
+              - ${ip}/${prefix}
+            routes:
+              - to: default
+                via: ${gateway}
             nameservers:
-              addresses: [${join(", ", dns)}]
-  - path: /etc/kubernetes/kubeadm-join.yaml
-    permissions: '0644'
-    content: |
-${kubeadm_join_yaml}
-  - path: /usr/local/bin/kubeadm-join-retry.sh
+              addresses:
+%{ for addr in dns ~}
+                - ${addr}
+%{ endfor ~}
+
+  - path: /usr/local/bin/wait-for-join.sh
     permissions: '0755'
     content: |
       #!/bin/bash
       set -e
-      # If already joined, exit
-      if [ -f /etc/kubernetes/kubelet.conf ]; then
-        exit 0
-      fi
-      for i in {1..30}; do
-        if kubeadm join --config /etc/kubernetes/kubeadm-join.yaml; then
-          exit 0
+      LOG_FILE="/var/log/kubeadm-join.log"
+      exec >>"$LOG_FILE" 2>&1
+      echo "[INFO] $(date -Iseconds) starting kubeadm join attempts"
+      for i in {1..180}; do
+        if curl -fs http://${control_plane_ip}:${join_port}/join.sh -o /tmp/join.sh; then
+          chmod +x /tmp/join.sh
+          if bash /tmp/join.sh; then
+            echo "[INFO] $(date -Iseconds) join succeeded on attempt $i"
+            exit 0
+          else
+            echo "[WARN] $(date -Iseconds) join.sh failed on attempt $i"
+          fi
+        else
+          echo "[WARN] $(date -Iseconds) join.sh not yet available (attempt $i)"
         fi
-        sleep 10
+        sleep 5
       done
+      echo "[ERROR] $(date -Iseconds) join timed out after 180 attempts"
       exit 1
+
   - path: /etc/systemd/system/kubeadm-join.service
     permissions: '0644'
     content: |
       [Unit]
-      Description=Run kubeadm join on first boot
-      After=network-online.target containerd.service
-      Wants=network-online.target
+      Description=Join node to Kubernetes cluster
+      Wants=network-online.target systemd-networkd-wait-online.service containerd.service
+      After=network-online.target systemd-networkd-wait-online.service containerd.service
 
       [Service]
       Type=oneshot
-      ExecStart=/usr/local/bin/kubeadm-join-retry.sh
-      RemainAfterExit=yes
+      ExecStart=/usr/local/bin/wait-for-join.sh
+      Restart=on-failure
+      RestartSec=10
+      StartLimitIntervalSec=0
 
       [Install]
       WantedBy=multi-user.target
