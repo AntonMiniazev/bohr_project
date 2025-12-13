@@ -27,3 +27,4 @@ Dockerfile
 !custom_images/airflow/Dockerfile
 .devcontainer/
 old_infra/
+.terraform.lock.hcl
