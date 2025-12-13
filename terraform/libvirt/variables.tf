@@ -59,7 +59,7 @@ variable "storage_pool" {
 variable "calico_interface" {
   description = "Interface name for Calico autodetection"
   type        = string
-  default     = "ens3"
+  default     = "enp0s2"
 }
 
 variable "base_image_url" {
