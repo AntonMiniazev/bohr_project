@@ -188,7 +188,11 @@ runcmd:
   - curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
   - sh -c 'echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /" > /etc/apt/sources.list.d/kubernetes.list'
   - apt-get update
-  - apt-get install -y conntrack containerd kubelet kubeadm kubectl helm sops gnupg
+  - apt-get install -y conntrack containerd kubelet kubeadm kubectl gnupg
+  - curl -LO https://github.com/getsops/sops/releases/download/v3.11.0/sops-v3.11.0.linux.amd64
+  - install -m 0755 sops-v3.11.0.linux.amd64 /usr/local/bin/sops  
+  - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  - helm plugin install https://github.com/jkroepke/helm-secrets --version v4.6.0 || true  
   - systemctl enable kubelet  
   - echo "net.ipv4.ip_forward=1" | tee /etc/sysctl.d/99-kubernetes-ipforward.conf
   - sysctl --system
@@ -209,4 +213,3 @@ runcmd:
   - systemctl stop kubeadm-init.service || true
   - systemctl disable kubeadm-init.service || true
   - systemctl start bootstrap-master.service --no-block
-  - helm plugin install https://github.com/jkroepke/helm-secrets --version v4.6.0 || true
