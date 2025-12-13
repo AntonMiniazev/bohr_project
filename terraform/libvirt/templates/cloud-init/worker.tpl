@@ -79,18 +79,28 @@ write_files:
       WantedBy=multi-user.target
 runcmd:
   - netplan apply
-  - swapoff -a
+  - systemctl restart systemd-networkd
+  - systemctl enable systemd-networkd-wait-online.service
+  - rm -f /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+  - bash -c 'for i in {1..20}; do ip route | grep -q "^default" && exit 0; echo "[INFO] Waiting for default route..."; sleep 3; done; echo "[WARN] Default route not found, continuing"; exit 0'
+  - bash -c 'for i in {1..5}; do apt-get update && exit 0; echo "[WARN] apt-get update failed, retry $i/5..."; sleep 10; done; echo "[ERROR] apt-get update failed after retries, continuing anyway"; exit 0'  
+  - bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y upgrade || echo "[WARN] apt upgrade failed (non-fatal)"'
+  - apt-get install -y ca-certificates curl gnupg software-properties-common conntrack
   - sed -i '/ swap / s/^/#/' /etc/fstab
+  - swapoff -a
   - modprobe br_netfilter
   - echo 'net.bridge.bridge-nf-call-iptables=1' | tee /etc/sysctl.d/k8s.conf
+  - echo 'net.ipv4.ip_forward=1' | tee /etc/sysctl.d/99-kubernetes-ipforward.conf
   - sysctl --system
   - curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
   - echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
   - apt-get update
   - apt-get install -y kubelet kubeadm kubectl containerd conntrack
   - systemctl enable containerd
+  - mkdir -p /etc/containerd
   - containerd config default | tee /etc/containerd/config.toml
   - sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
   - systemctl restart containerd
+  - systemctl daemon-reload  
   - systemctl enable kubeadm-join.service
-  - systemctl start kubeadm-join.service
+  - systemctl start kubeadm-join.service --no-block
