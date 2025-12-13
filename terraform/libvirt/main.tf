@@ -37,8 +37,8 @@ resource "libvirt_network" "ampere_net" {
 
     dhcp = {
           ranges = [{
-            start = "192.168.11.100"
-            end   = "192.168.11.200"
+            start = var.dchp_addresses_range.dhcp_start
+            end   = var.dchp_addresses_range.dhcp_end
           }]
           hosts = concat(
             [

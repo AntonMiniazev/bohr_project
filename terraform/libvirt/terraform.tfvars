@@ -3,7 +3,8 @@ libvirt_uri  = "qemu:///system"
 network_name = "default"
 
 # Base Ubuntu cloud image present on the KVM host
-base_image_path         = "/var/lib/libvirt/images/jammy-server-cloudimg-amd64.img"
+base_image_path         = ""
+base_image_url          = "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img"
 ssh_public_keys = [
   "AAAAC3NzaC1lZDI1NTE5AAAAIBCi9s1vZleOv8mgTpVbS+onvy06OIFazNVOy70XBn3c"
 ]
@@ -26,6 +27,7 @@ control_plane = {
   vcpu     = 2
   disk_gb  = 40
   ip       = "192.168.11.100"
+  mac      = "02:16:3A:9B:01:10"
 }
 
 # Workers: replicate the old fleet (node1..node3). IPs are rendered into the template.
@@ -35,17 +37,26 @@ worker_nodes = {
     vcpu    = 2
     disk_gb = 40
     ip      = "192.168.11.101"
+    mac     = "02:1C:55:F3:22:47"
   }
   "ampere-k8s-node2" = {
     memory  = 4096
     vcpu    = 2
     disk_gb = 40
     ip      = "192.168.11.102"
+    mac     = "02:28:A7:6C:33:8D"
   }
   "ampere-k8s-node3" = {
     memory  = 10240
     vcpu    = 4
     disk_gb = 40
     ip      = "192.168.11.103"
+    mac     = "02:34:F9:DA:44:E2"
   }
+}
+
+# Start and end of DHCP range
+dchp_addresses_range = { 
+  dhcp_start = "192.168.11.100" 
+  dhcp_end = "192.168.11.200" 
 }

@@ -32,6 +32,12 @@ variable "network_gateway" {
   default     = "192.168.11.1"
 }
 
+variable "network_interface" {
+  description = "Guest interface name used in netplan (e.g., enp1s0)"
+  type        = string
+  default     = "enp0s2"
+}
+
 variable "network_dns" {
   description = "DNS servers list"
   type        = list(string)
@@ -56,6 +62,11 @@ variable "calico_interface" {
   default     = "ens3"
 }
 
+variable "base_image_url" {
+  description = "HTTP(S) URL to the Ubuntu cloud image (used for upload)"
+  type        = string
+}
+
 variable "control_plane" {
   description = "Control-plane definition"
   type = object({
@@ -64,6 +75,7 @@ variable "control_plane" {
     vcpu     = number
     disk_gb  = number
     ip       = string
+    mac      = string
   })
 }
 
@@ -74,6 +86,7 @@ variable "worker_nodes" {
     vcpu    = number
     disk_gb = number
     ip      = string
+    mac      = string
   }))
   default = {}
 }
@@ -106,4 +119,30 @@ variable "join_http_port" {
   description = "Port for join token/hash HTTP server"
   type        = number
   default     = 8000
+}
+
+variable "control_plane_ssh_user" {
+  description = "SSH user to wait on the control-plane node"
+  type        = string
+  default     = "ampere"
+}
+
+variable "ssh_known_hosts_dir" {
+  description = "Directory for cluster-specific known_hosts file"
+  type        = string
+  default     = "~/.ssh"
+}
+
+variable "ssh_known_hosts_file" {
+  description = "Filename for cluster-specific known_hosts"
+  type        = string
+  default     = "ampere_known_hosts"
+}
+
+variable "dchp_addresses_range" {
+  description = "Start and end of DHCP range"
+  type = object({
+    dhcp_start = string
+    dhcp_end   = string
+  })
 }
