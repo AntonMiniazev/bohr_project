@@ -129,6 +129,11 @@ locals {
       interface        = var.network_interface
       control_plane_ip = var.control_plane.ip
       join_port        = var.join_http_port
+      kubeadm_join_yaml = indent(6, templatefile("${path.module}/templates/kubeadm/kubeadm-join.yaml.tpl", {
+        control_plane_ip = var.control_plane.ip
+        token            = ""
+        ca_hash          = ""
+      }))
     })
   }
 }
