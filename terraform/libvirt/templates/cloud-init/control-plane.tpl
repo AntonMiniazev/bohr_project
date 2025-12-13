@@ -37,7 +37,6 @@ write_files:
   - path: /etc/kubernetes/kubeadm-init.yaml
     permissions: '0644'
     content: |
-
 ${kubeadm_init_yaml}
 
   - path: /usr/local/bin/write-join.sh
@@ -154,23 +153,6 @@ ${kubeadm_init_yaml}
       [Install]
       WantedBy=multi-user.target
 
-  - path: /etc/systemd/system/kubeadm-init.service
-    permissions: '0644'
-    content: |
-      [Unit]
-      Description=Run kubeadm init on first boot
-      Wants=network-online.target systemd-networkd-wait-online.service containerd.service
-      After=network-online.target systemd-networkd-wait-online.service containerd.service cloud-final.service
-
-      [Service]
-      Type=oneshot
-      ExecStartPre=/usr/bin/sleep 25
-      ExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-init.yaml
-      RemainAfterExit=yes
-
-      [Install]
-      WantedBy=multi-user.target
-
 runcmd:
   - netplan apply
   - systemctl restart systemd-networkd
@@ -205,10 +187,7 @@ runcmd:
   - until ping -c1 8.8.8.8 >/dev/null 2>&1; do sleep 2; done
   - kubeadm config images pull --config /etc/kubernetes/kubeadm-init.yaml || true
   - systemctl daemon-reload
-  - systemctl enable kubeadm-init.service
   - systemctl enable kubeadm-write-join.service
   - systemctl enable kubeadm-join-http.service
   - systemctl enable bootstrap-master.service
-  - systemctl stop kubeadm-init.service || true
-  - systemctl disable kubeadm-init.service || true
   - systemctl start bootstrap-master.service --no-block
