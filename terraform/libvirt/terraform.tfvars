@@ -6,7 +6,7 @@ network_name = "default"
 base_image_path         = ""
 base_image_url          = "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img"
 ssh_public_keys = [
-  "AAAAC3NzaC1lZDI1NTE5AAAAIBCi9s1vZleOv8mgTpVbS+onvy06OIFazNVOy70XBn3c"
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBCi9s1vZleOv8mgTpVbS+onvy06OIFazNVOy70XBn3c oppie@client"
 ]
 
 network_gateway = "192.168.11.1"
