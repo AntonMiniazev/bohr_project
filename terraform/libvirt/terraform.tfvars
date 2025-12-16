@@ -1,51 +1,17 @@
-project_name = "ampere"
-libvirt_uri  = "qemu:///system"
-network_name = "default"
-
-# Base Ubuntu cloud image present on the KVM host
-base_image_path         = "/var/lib/libvirt/images/jammy-server-cloudimg-amd64.img"
-ssh_public_keys = [
-  "AAAAC3NzaC1lZDI1NTE5AAAAIBCi9s1vZleOv8mgTpVbS+onvy06OIFazNVOy70XBn3c"
-]
-
-network_gateway = "192.168.11.1"
-network_dns     = ["8.8.8.8", "8.8.4.4"]
-network_prefix  = 24
-storage_pool    = "default"
-calico_interface = "ens3"
-
-k8s_version      = "stable"
-pod_network_cidr = "10.10.0.0/16"
-service_subnet   = "10.96.0.0/12"
-join_http_bind_address = "192.168.11.100"
-join_http_port         = 8000
-
-control_plane = {
-  hostname = "ampere-k8s-master"
-  memory   = 4096
-  vcpu     = 2
-  disk_gb  = 40
-  ip       = "192.168.11.100"
-}
-
-# Workers: replicate the old fleet (node1..node3). IPs are rendered into the template.
-worker_nodes = {
-  "ampere-k8s-node1" = {
-    memory  = 4096
-    vcpu    = 2
-    disk_gb = 40
-    ip      = "192.168.11.101"
-  }
-  "ampere-k8s-node2" = {
-    memory  = 4096
-    vcpu    = 2
-    disk_gb = 40
-    ip      = "192.168.11.102"
-  }
-  "ampere-k8s-node3" = {
-    memory  = 10240
-    vcpu    = 4
-    disk_gb = 40
-    ip      = "192.168.11.103"
-  }
+{
+	"data": "ENC[AES256_GCM,data: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,iv:7tyM0SmZrTkatGp+xfEZMT63+x7avLgwf0uWJXbv1Uc=,tag:hWsEmGDLXQt36Dmvo5tJWg==,type:str]",
+	"sops": {
+		"azure_kv": [
+			{
+				"vault_url": "https://az-ampere-kv.vault.azure.net",
+				"name": "sops-key",
+				"version": "c1f32e2e99064a1582e1741109ca0f06",
+				"created_at": "2025-12-16T07:53:28Z",
+				"enc": "Hf4ckfIq4m2m-KtdP_BCK_HVE4tOCN-rXROzGItcPzVyVDXaCqaM_yx3nyj5FcG_lnwUz14Sq5rZ6R-jsWw8xd85Qrsk-bOgizbZekf08Kft4TohILIIwrzk5Z7eV5PCjPKGHxeGILIdfLr-i51i1QEVODswhIhQaX2dYO5naxmHIOym9ylrHMk6euLn4gLx2JaeXuIguauh0kPVIaUL2ravPH01xvzaxgRQL6DtMFDjn7NoV9DJpV3giEAPG20PsyCg8bEmY1XpLYivBOi003T-lLQiqQRyyv2goBEY0HPQ8Ibu_udTydby50I5HoWYmjczzV-o73vbOZ5VR55Gpg"
+			}
+		],
+		"lastmodified": "2025-12-16T07:53:33Z",
+		"mac": "ENC[AES256_GCM,data:+fCudh8k2gYQu/PNLVdXgpnKt5rRle58IAa4uciFrqI/lM6SfExHOowJdY6bwaGvqWMRvLTUhVqNaV53FTWbG9Cs1kjKpvafJ1hJirxLmpwcWEVY9Roh72ohJDLGTmjF4dBoYhaZnZv0bNXfMbRDD+tvryu5Le5lxRUHEdJJk5k=,iv:iIm3dD41bYyh8cHbp2tw0H3WdH0VIjvpxvNT8FZPROU=,tag:5vTOV9CuhBN6mMUvULVozA==,type:str]",
+		"version": "3.11.0"
+	}
 }

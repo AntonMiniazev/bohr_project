@@ -1,0 +1,33 @@
+fullnameOverride: {{ .Environment.Values.postgresql.host }}
+
+image:
+  repository: {{ .Environment.Values.postgresql.image.repository }}
+  tag: {{ .Environment.Values.postgresql.image.tag | quote }}
+  pullPolicy: {{ .Environment.Values.postgresql.image.pullPolicy }}
+
+service:
+  type: NodePort
+  port: {{ .Environment.Values.postgresql.port }}
+  nodePort: {{ .Environment.Values.postgresql.nodeport }}
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClassName: {{ .Environment.Values.global.storageClass }}
+
+nodeSelector:
+  kubernetes.io/hostname: {{ .Environment.Values.postgresql.node }}
+
+auth:
+  username: postgres
+
+users:
+  airflow:
+    username: {{ .Environment.Values.postgresql.airflowUser }}
+    database: {{ .Environment.Values.postgresql.airflowDatabase }}
+
+appUsers:
+  operational_database:
+    user: {{ .Environment.Values.postgresql.operationalUser }}
+    database: {{ .Environment.Values.postgresql.operationalDatabase }}
+

@@ -1,8 +1,8 @@
-namespace: ampere
+namespace: {{ .Environment.Values.global.namespace }}
 replicaCount: 1
 image:
-  repository: quay.io/minio/minio
-  tag: RELEASE.2025-07-23T15-54-02Z
+  repository: {{ .Environment.Values.minio.repo }}
+  tag: {{ .Environment.Values.minio.release }}
 service:
   type: NodePort
   ports:
@@ -23,9 +23,9 @@ resources:
     memory: "1Gi"
 persistence:
   size: 5Gi
-  storageClassName: local-path
+  storageClassName: {{ .Environment.Values.global.storageClass }}
 users:
   - accessKey: externalSecret
     existingSecret: minio-creds
 nodeSelector:
-  kubernetes.io/hostname: ampere-k8s-node2
+  kubernetes.io/hostname: {{ .Environment.Values.minio.node }}

@@ -2,29 +2,32 @@ executor: CeleryExecutor
 
 data:
   metadataConnection:
-    user: airflow
-    protocol: postgresql+psycopg2
-    host: postgresql
-    port: 5432
-    db: airflow_metadata
+    user: postgres
+    protocol: postgresql
+    host: {{ .Environment.Values.postgresql.host }}
+    port: {{ .Environment.Values.postgresql.port }}
+    db: postgres
     sslmode: disable
 
 env:
   - name: AIRFLOW__PROVIDERS_ODBC__ALLOW_DRIVER_IN_EXTRA
     value: "true"
 
+
+webserverSecretKeySecretName: airflow-webserver-secret
+
 images:
   airflow:
-    repository: an7on/airflow-mssql
-    tag: latest
-    pullPolicy: Always
+    repository: {{ .Environment.Values.airflow.image.repository }}
+    tag: {{ .Environment.Values.airflow.image.tag }}
+    pullPolicy: {{ .Environment.Values.airflow.image.pullPolicy }}
 
 nodeSelector:
-  kubernetes.io/hostname: ampere-k8s-node3
+  kubernetes.io/hostname: {{ .Environment.Values.airflow.node }}
 
 workers:
   persistence:
-    storageClassName: local-path
+    storageClassName: {{ .Environment.Values.global.storageClass }}
   livenessProbe:
     timeoutSeconds: 60
     periodSeconds: 60
@@ -51,7 +54,7 @@ config:
 
 triggerer:
   persistence:
-    storageClassName: local-path
+    storageClassName: {{ .Environment.Values.global.storageClass }}
   replicas: 1
   resources:
     requests:
@@ -68,14 +71,14 @@ triggerer:
 
 redis:
   persistence:
-    storageClassName: local-path
+    storageClassName: {{ .Environment.Values.global.storageClass }}
 
 dags:
   persistence:
-    storageClassName: local-path
+    storageClassName: {{ .Environment.Values.global.storageClass }}
   gitSync:
     enabled: true
-    repo: https://github.com/AntonMiniazev/ampere_project.git
+    repo: {{ .Environment.Values.airflow.gitRepo }}
     branch: master
     subPath: "dags"
     credentialsSecret: git-credentials
@@ -86,7 +89,6 @@ logs:
   persistence:
     enabled: true
     size: 5Gi
-    storageClassName: local-path
 
 postgresql:
   enabled: false
@@ -135,7 +137,7 @@ apiServer:
         nodePort: 30080
   env:
     - name: AIRFLOW__API__BASE_URL
-      value: "http://airflow.local"
+      value: {{ .Environment.Values.airflow.host }}
     - name: AIRFLOW__API__WORKERS
       value: "1"
 

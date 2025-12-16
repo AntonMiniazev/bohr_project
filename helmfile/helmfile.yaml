@@ -1,61 +1,67 @@
+bases:
+  - environments.yaml
+
 helmDefaults:
   wait: true
   timeout: 600
 
-environments:
-  home:
-    values:
-      - values/home/common.values.yaml
-
 repositories:
-  - name: local-charts
-    url: file://../charts
   - name: bitnami
     url: https://charts.bitnami.com/bitnami
-  - name: clastix
-    url: https://clastix.github.io/charts
+  - name: apache-airflow
+    url: https://airflow.apache.org
+  - name: kedacore
+    url: https://kedacore.github.io/charts
 
 releases:
-  - name: local-path-provisioner
-    chart: clastix/local-path-provisioner
-    version: 0.0.30
-    namespace: kube-system
+  - name: keda
+    chart: kedacore/keda
+    version: 2.16.0
+    namespace: keda
     createNamespace: true
+    labels:
+      app: keda
+      tier: infra
     values:
-      - values/{{ .Environment.Name }}/local-path.values.yaml
+      - services/keda/keda.values.yaml.gotmpl
 
   - name: postgresql
-    chart: bitnami/postgresql
-    version: 18.1.13
-    namespace: {{ .Environment.Values.global.namespace }}
+    chart: ./services/postgresql
+    namespace: ampere
     createNamespace: true
+    labels:
+      app: postgresql
+      tier: database
     values:
-      - values/{{ .Environment.Name }}/postgresql.values.yaml
+      - services/postgresql/postgresql.values.yaml.gotmpl
     secrets:
-      - secrets/{{ .Environment.Name }}/postgresql.credentials.yaml
-    needs:
-      - kube-system/local-path-provisioner
+      - services/postgresql/postgresql.credentials.yaml
 
   - name: minio
-    chart: local-charts/minio-chart
-    namespace: {{ .Environment.Values.global.namespace }}
+    chart: ./services/minio
+    namespace: ampere
     createNamespace: true
+    labels:
+      app: minio
+      tier: storage
     values:
-      - values/{{ .Environment.Name }}/minio.values.yaml
+      - services/minio/minio.values.yaml.gotmpl
     secrets:
-      - secrets/{{ .Environment.Name }}/minio.credentials.yaml
-    needs:
-      - kube-system/local-path-provisioner
+      - services/minio/minio.credentials.yaml
 
   - name: airflow
-    chart: local-charts/airflow-chart
-    namespace: {{ .Environment.Values.global.namespace }}
+    chart: apache-airflow/airflow
+    version: 1.18.0
+    namespace: ampere
     createNamespace: true
+    labels:
+      app: airflow
+      tier: workflow
     values:
-      - values/{{ .Environment.Name }}/airflow.values.yaml
+      - services/airflow/airflow.values.yaml.gotmpl
     secrets:
-      - secrets/{{ .Environment.Name }}/airflow.credentials.yaml
-      - secrets/{{ .Environment.Name }}/airflow.git-credentials.yaml
+      - services/airflow/airflow.credentials.yaml
+      - services/airflow/airflow.webserver-secret.yaml
     needs:
-      - kube-system/local-path-provisioner
-      - "{{ .Environment.Values.global.namespace }}/postgresql"
+      - keda/keda
+      - "ampere/postgresql"
