@@ -1,4 +1,0 @@
-apiVersion: v2
-name: airflow-chart
-description: A Helm chart for deploying Airflow
-version: 0.1.0
