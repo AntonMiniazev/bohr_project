@@ -1,37 +1,12 @@
+{{- if .Values.initdbScripts }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "postgresql.name" . }}-initdb
   namespace: {{ .Release.Namespace }}
 data:
-  01-create-databases.sh: |
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    psql -v ON_ERROR_STOP=1 \
-      -v airflow_user="$AIRFLOW_DB_USER" \
-      -v airflow_pass="$AIRFLOW_DB_PASSWORD" \
-      -v airflow_db="$AIRFLOW_DB_NAME" \
-      -v ampere_user="$AMPERE_DB_USER" \
-      -v ampere_pass="$AMPERE_DB_PASSWORD" \
-      -v ampere_db="$AMPERE_DB_NAME" \
-      --username "$POSTGRES_USER" \
-      --dbname postgres <<'SQL'
-    DO $$
-    BEGIN
-      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'airflow_user') THEN
-        EXECUTE format('CREATE ROLE %I LOGIN PASSWORD %L', :'airflow_user', :'airflow_pass');
-      END IF;
-      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = :'airflow_db') THEN
-        EXECUTE format('CREATE DATABASE %I OWNER %I', :'airflow_db', :'airflow_user');
-      END IF;
-
-      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'ampere_user') THEN
-        EXECUTE format('CREATE ROLE %I LOGIN PASSWORD %L', :'ampere_user', :'ampere_pass');
-      END IF;
-      IF NOT EXISTS (SELECT FROM pg_database WHERE datname = :'ampere_db') THEN
-        EXECUTE format('CREATE DATABASE %I OWNER %I', :'ampere_db', :'ampere_user');
-      END IF;
-    END
-    $$;
-    SQL
+{{- range $name, $content := .Values.initdbScripts }}
+  {{ $name }}: |-
+{{ tpl $content $ | indent 4 }}
+{{- end }}
+{{- end }}

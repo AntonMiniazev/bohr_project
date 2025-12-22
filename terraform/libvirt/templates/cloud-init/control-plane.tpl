@@ -1,38 +1,21 @@
 #cloud-config
-hostname: ${hostname}
+hostname: ${control_plane.hostname}
 timezone: Europe/Belgrade
 ssh_pwauth: false
 users:
-  - name: ampere
+  - name: ${identity.project_name}
     sudo: ALL=(ALL) NOPASSWD:ALL
     groups: sudo
     shell: /bin/bash
     ssh_authorized_keys:
-%{ for key in ssh_keys ~}
+%{ for key in ssh.ssh_public_keys ~}
       - "${key}"
 %{ endfor ~}
 
 package_update: false
 package_upgrade: false
+
 write_files:
-  - path: /etc/netplan/99-netcfg.yaml
-    permissions: '0600'
-    content: |
-      network:
-        version: 2
-        ethernets:
-          ${interface}:
-            dhcp4: no
-            addresses:
-              - ${ip}/${prefix}
-            routes:
-              - to: default
-                via: ${gateway}
-            nameservers:
-              addresses:
-%{ for addr in dns ~}
-                - ${addr}
-%{ endfor ~}
 
   - path: /etc/containerd/certs.d/docker.io/hosts.toml
     permissions: '0644'
@@ -43,13 +26,118 @@ write_files:
         capabilities = ["pull", "resolve"]
 
         [host."https://registry-1.docker.io".auth]
-          username = ${dockerhub_username}
-          password = ${dockerhub_password}
+          username = ${registry.dockerhub_username}
+          password = ${registry.dockerhub_token}
 
+  # --- Stage 1 bootstrap script ---
+  - path: /usr/local/bin/bootstrap-init.sh
+    permissions: '0755'
+    content: |
+${bootstrap_init_script_indented}
+
+  # --- Stage 1 systemd unit ---
+  - path: /etc/systemd/system/bootstrap-init.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Stage 1 - OS ready (network + container runtime)
+      Wants=network-online.target systemd-networkd-wait-online.service
+      After=network-online.target systemd-networkd-wait-online.service
+      ConditionPathExists=!/var/lib/${identity.project_name}/OS_READY
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/bootstrap-init.sh
+      ExecStartPost=/bin/systemctl start --no-block bootstrap-k8s.service
+      RemainAfterExit=yes
+      Restart=no
+
+      [Install]
+      WantedBy=multi-user.target
+
+
+  # --- bpffs mount unit (required by Cilium) ---
+  - path: /etc/systemd/system/sys-fs-bpf.mount
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=BPF filesystem
+      DefaultDependencies=no
+      Before=local-fs.target
+
+      [Mount]
+      What=bpf
+      Where=/sys/fs/bpf
+      Type=bpf
+      Options=rw,nosuid,nodev,noexec,relatime
+
+      [Install]
+      WantedBy=multi-user.target      
+
+  # --- Stage 2 Kubernetes control plane setup ---
+  
   - path: /etc/kubernetes/kubeadm-init.yaml
     permissions: '0644'
     content: |
-${kubeadm_init_yaml}
+${kubeadm_init_indented}
+
+  - path: /usr/local/bin/bootstrap-k8s.sh
+    permissions: '0755'
+    content: |
+${bootstrap_master_script_indented}
+
+  - path: /etc/systemd/system/bootstrap-k8s.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Stage 2 - Bootstrap Kubernetes control plane
+      Wants=network-online.target systemd-networkd-wait-online.service
+      After=network-online.target systemd-networkd-wait-online.service bootstrap-init.service
+      Requires=bootstrap-init.service
+      ConditionPathExists=/var/lib/${identity.project_name}/OS_READY
+      ConditionPathExists=!/etc/kubernetes/admin.conf
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/bootstrap-k8s.sh
+      ExecStartPost=/bin/systemctl start --no-block bootstrap-addons.service
+      RemainAfterExit=yes
+      Restart=no
+
+      [Install]
+      WantedBy=multi-user.target
+
+  # --- Stage 3 CNI, local-path, addons and joins ---
+
+  - path: /opt/bootstrap/local-path-configmap.yaml
+    permissions: '0644'
+    content: |
+${local_path_configmap_indented}
+
+  - path: /usr/local/bin/bootstrap-addons.sh
+    permissions: '0755'
+    content: |
+${bootstrap_addons_script_indented}
+
+  - path: /etc/systemd/system/bootstrap-addons.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Stage 3 - Install CNI and cluster addons
+      Requires=bootstrap-k8s.service
+      After=bootstrap-k8s.service
+      ConditionPathExists=/var/lib/${identity.project_name}/CONTROL_PLANE_CREATED
+      ConditionPathExists=!/var/lib/${identity.project_name}/ADDONS_DONE
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/bootstrap-addons.sh
+      ExecStartPost=/bin/systemctl start --no-block kubeadm-write-join.service
+      RemainAfterExit=yes
+      Restart=no
+
+      [Install]
+      WantedBy=multi-user.target
 
   - path: /usr/local/bin/write-join.sh
     permissions: '0755'
@@ -64,24 +152,24 @@ ${kubeadm_init_yaml}
         | sed 's/^.* //')
       echo "$token" > /var/lib/kubeadm/join-token.txt
       echo "$hash" > /var/lib/kubeadm/ca-hash.txt
-      echo "kubeadm join ${ip}:6443 --token $token --discovery-token-ca-cert-hash sha256:$hash" > /var/lib/kubeadm/join.sh
+      echo "kubeadm join ${control_plane.ip}:6443 --token $token --discovery-token-ca-cert-hash sha256:$hash" > /var/lib/kubeadm/join.sh
       chmod +x /var/lib/kubeadm/join.sh
 
   - path: /etc/systemd/system/kubeadm-write-join.service
     permissions: '0644'
     content: |
       [Unit]
-      Description=Generate kubeadm join materials after init
-      After=kubeadm-init.service
-      Wants=kubeadm-init.service
+      Description=Generate kubeadm join materials (post-CNI)
+      Requires=bootstrap-addons.service
+      After=bootstrap-addons.service
+      ConditionPathExists=/var/lib/${identity.project_name}/CONTROL_PLANE_CREATED
 
       [Service]
       Type=oneshot
       ExecStart=/usr/local/bin/write-join.sh
+      ExecStartPost=/bin/systemctl start --no-block kubeadm-join-http.service
       RemainAfterExit=yes
-
-      [Install]
-      WantedBy=multi-user.target
+      Restart=no
 
   - path: /etc/systemd/system/kubeadm-join-http.service
     permissions: '0644'
@@ -89,78 +177,22 @@ ${kubeadm_init_yaml}
       [Unit]
       Description=Serve kubeadm join artifacts over HTTP
       After=kubeadm-write-join.service
-      Wants=kubeadm-write-join.service
+      ConditionPathExists=/var/lib/kubeadm/join.sh
 
       [Service]
       WorkingDirectory=/var/lib/kubeadm
-      ExecStart=/usr/bin/python3 -m http.server ${join_port} --bind ${join_bind}
+      ExecStart=/usr/bin/python3 -m http.server ${join.join_http_port} --bind ${join.join_http_bind_address}
       Restart=on-failure
-
-      [Install]
-      WantedBy=multi-user.target
-
-  - path: /opt/bootstrap/local-path-configmap.yaml
-    permissions: '0644'
-    content: |
-${local_path_configmap_yaml}
-
-  - path: /usr/local/bin/bootstrap-master.sh
-    permissions: '0755'
-    content: |
-${bootstrap_master_script_indented}
-
-  - path: /etc/systemd/system/bootstrap-master.service
-    permissions: '0644'
-    content: |
-      [Unit]
-      Description=Bootstrap Kubernetes control plane
-      Wants=network-online.target systemd-networkd-wait-online.service containerd.service
-      After=network-online.target systemd-networkd-wait-online.service containerd.service
-      ConditionPathExists=!/etc/kubernetes/admin.conf
-
-      [Service]
-      Type=oneshot
-      ExecStart=/usr/local/bin/bootstrap-master.sh
-      RemainAfterExit=yes
+      RestartSec=2
 
       [Install]
       WantedBy=multi-user.target
 
 runcmd:
-  - netplan apply
-  - systemctl enable systemd-networkd-wait-online.service
-  - rm -f /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg  
-  - bash -c 'for i in {1..20}; do ip route | grep -q "^default" && exit 0; echo "[INFO] Waiting for default route..."; sleep 3; done; echo "[WARN] Default route not found, continuing"; exit 0'
-  - bash -c 'for i in {1..5}; do apt-get update && exit 0; echo "[WARN] apt-get update failed, retry $i/5..."; sleep 10; done; echo "[ERROR] apt-get update failed after retries, continuing anyway"; exit 0'  
-  - bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y upgrade || echo "[WARN] apt upgrade failed (non-fatal)"'
-  - apt-get install -y ca-certificates curl gnupg software-properties-common  
-  - sed -i '/ swap / s/^/#/' /etc/fstab
-  - swapoff -a
-  - modprobe br_netfilter
-  - echo 'net.bridge.bridge-nf-call-iptables=1' | tee /etc/sysctl.d/k8s.conf
-  - sysctl --system    
-  - curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-  - sh -c 'echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /" > /etc/apt/sources.list.d/kubernetes.list'
-  - apt-get update
-  - apt-get install -y conntrack containerd kubelet kubeadm kubectl gnupg
-  - curl -LO https://github.com/getsops/sops/releases/download/v3.11.0/sops-v3.11.0.linux.amd64
-  - install -m 0755 sops-v3.11.0.linux.amd64 /usr/local/bin/sops
-  - curl -L https://github.com/roboll/helmfile/releases/download/v1.2.2/helmfile_linux_amd64 -o helmfile  
-  - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-  - helm plugin install https://github.com/jkroepke/helm-secrets --version v4.7.4 --verify=false
-  - helm plugin install https://github.com/databus23/helm-diff  
-  - echo "net.ipv4.ip_forward=1" | tee /etc/sysctl.d/99-kubernetes-ipforward.conf
-  - sysctl --system
-  - systemctl daemon-reexec
-  - systemctl enable containerd
-  - systemctl restart containerd
-  - systemctl enable kubelet
-  - systemctl start kubelet
-  - until systemctl is-active --quiet systemd-networkd containerd; do sleep 2; done
-  - until ping -c1 8.8.8.8 >/dev/null 2>&1; do sleep 2; done
-  - kubeadm config images pull --config /etc/kubernetes/kubeadm-init.yaml || true
+  - mkdir -p /sys/fs/bpf
+  - sed -i 's/\r$//' /etc/systemd/system/sys-fs-bpf.mount || true
   - systemctl daemon-reload
-  - systemctl enable kubeadm-write-join.service
-  - systemctl enable kubeadm-join-http.service
-  - systemctl enable bootstrap-master.service
-  - systemctl start bootstrap-master.service --no-block
+  - systemctl enable --now sys-fs-bpf.mount
+  - systemctl enable bootstrap-init.service
+  - systemctl enable bootstrap-k8s.service
+  - systemctl start bootstrap-init.service --no-block

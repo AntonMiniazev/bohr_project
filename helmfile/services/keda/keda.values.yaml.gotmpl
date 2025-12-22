@@ -1,1 +1,18 @@
 watchNamespace: {{ .Environment.Values.global.namespace }}
+
+extraObjects:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: keda-operator-cluster-access
+      labels:
+        app.kubernetes.io/name: keda-operator
+        app.kubernetes.io/instance: keda
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: keda-operator
+    subjects:
+      - kind: ServiceAccount
+        name: keda-operator
+        namespace: keda

@@ -1,12 +1,20 @@
+{{- $pgHost := .Environment.Values.postgresql.host -}}
 executor: CeleryExecutor
+
+createUserJob:
+  useHelmHooks: false
+
+migrateDatabaseJob:
+  useHelmHooks: false
+  ttlSecondsAfterFinished: 0
 
 data:
   metadataConnection:
-    user: postgres
+    user: {{ .Environment.Values.postgresql.airflowUser }}
     protocol: postgresql
-    host: {{ .Environment.Values.postgresql.host }}
+    host: {{ if contains "." $pgHost }}{{ $pgHost }}{{ else }}{{ printf "%s.%s.svc.cluster.local" $pgHost .Environment.Values.global.namespace }}{{ end }}
     port: {{ .Environment.Values.postgresql.port }}
-    db: postgres
+    db: {{ .Environment.Values.postgresql.airflowDatabase }}
     sslmode: disable
 
 env:
@@ -17,6 +25,7 @@ env:
 webserverSecretKeySecretName: airflow-webserver-secret
 
 images:
+  migrationsWaitTimeout: 600
   airflow:
     repository: {{ .Environment.Values.airflow.image.repository }}
     tag: {{ .Environment.Values.airflow.image.tag }}
@@ -89,6 +98,7 @@ logs:
   persistence:
     enabled: true
     size: 5Gi
+    storageClassName: {{ .Environment.Values.global.storageClass }}
 
 postgresql:
   enabled: false

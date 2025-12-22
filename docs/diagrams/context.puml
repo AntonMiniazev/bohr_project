@@ -2,27 +2,28 @@
 !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
 LAYOUT_WITH_LEGEND()
 HIDE_STEREOTYPE()
-AddElementTag("PublicCloud", $bgColor="#E6F2FF", $fontColor="#0B2545")
 
-Person(customer, "External Viewer", "Browses the public dashboard from any browser")
-Person(dev, "Developer (Project Owner)", "Builds and operates the analytics delivery platform")
-System(streamlit, "Streamlit Dashboard", "Streamlit Community Cloud", "Public-facing analytics UI with KPI cards, charts, and tables")
-System(api, "Public API Proxy", "FastAPI on Render/Railway/VPS", "Filters requests and returns aggregated analytics")
-System_Ext(tunnel, "Encrypted Tunnel", "Tailscale / reverse SSH", "Outbound-only channel from the home cluster")
+Person(dev, "Developer", "Operates infrastructure and services")
 
-System_Boundary(home, "Home Kubernetes Cluster") {
-    System(sql, "SQL Server Datamart", "Gold analytics layer", "Curated tables exposed to the API proxy")
-    System(dataPlatform, "Synthetic Data Platform", "Python + Airflow + MinIO + DuckDB + dbt", "Generates, ingests, and refines synthetic commerce data")
+System_Ext(git, "Source Control + CI", "Git repository and container registry")
+System_Ext(keyvault, "Azure Key Vault", "KMS for SOPS encryption keys")
+
+System_Boundary(home, "Home Lab") {
+    System(kvm, "KVM/libvirt Host", "Ubuntu host running libvirt and VM storage")
+    System(homek8s, "Internal Kubernetes Cluster", "kubeadm control plane + workers for internal workloads")
 }
 
-Rel(customer, streamlit, "Explores metrics", "HTTPS")
-Rel(dev, streamlit, "Publishes UI updates", "CI/CD")
-Rel(dev, api, "Maintains endpoints", "Git / IaC")
-Rel(dev, dataPlatform, "Owns ETL & infrastructure", "Automation")
-Rel(streamlit, api, "Requests filtered datasets", "HTTPS")
-Rel(api, tunnel, "Forwards parametrized SQL", "Encrypted transport")
-Rel(tunnel, sql, "Executes read-only queries", "TDS over VPN")
-Rel(dataPlatform, sql, "Publishes curated tables", "ETL jobs")
+System_Boundary(cloud, "Public Cloud (planned)") {
+    System(apik8s, "Public Kubernetes Cluster", "Single-node control plane for API workloads")
+}
+
+Rel(dev, git, "Pushes IaC and images", "Git/CI")
+Rel(dev, kvm, "Runs Terraform and manages VMs", "SSH")
+Rel(dev, homek8s, "Applies Helmfile releases", "kubectl/Helmfile")
+Rel(dev, keyvault, "Manages keys and access", "Azure")
+Rel(homek8s, keyvault, "Decrypts secrets via SOPS", "KMS")
+Rel(homek8s, git, "Pulls container images", "Registry")
+Rel(apik8s, git, "Pulls container images", "Registry")
 
 SHOW_LEGEND()
 @enduml

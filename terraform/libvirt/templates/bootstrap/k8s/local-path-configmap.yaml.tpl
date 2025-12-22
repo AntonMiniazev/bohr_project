@@ -10,6 +10,14 @@ data:
     {
       "sharedFileSystemPath": "/opt/local-path-provisioner/shared"
     }
+  setup: |-
+    #!/bin/sh
+    set -eu
+    mkdir -m 0777 -p "$VOL_DIR"
+  teardown: |-
+    #!/bin/sh
+    set -eu
+    rm -rf "$VOL_DIR"
   helperPod.yaml: |-
       apiVersion: v1
       kind: Pod

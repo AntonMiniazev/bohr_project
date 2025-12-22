@@ -4,7 +4,7 @@ metadata:
   name: {{ include "postgresql.name" . }}
   namespace: {{ .Release.Namespace }}
 spec:
-  serviceName: {{ include "postgresql.name" . }}
+  serviceName: {{ .Values.service.name | default (include "postgresql.name" .) }}
   replicas: 1
   selector:
     matchLabels:
@@ -92,14 +92,18 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
+{{- if .Values.initdbScripts }}
             - name: initdb
               mountPath: /docker-entrypoint-initdb.d
+{{- end }}
 
+{{- if .Values.initdbScripts }}
       volumes:
         - name: initdb
           configMap:
             name: {{ include "postgresql.name" . }}-initdb
             defaultMode: 0755
+{{- end }}
 
   volumeClaimTemplates:
     - metadata:
