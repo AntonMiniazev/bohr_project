@@ -47,4 +47,3 @@ initdbScripts:
     \connect {{ .Environment.Values.postgresql.operationalDatabase }}
     ALTER SCHEMA public OWNER TO {{ .Environment.Values.postgresql.operationalUser }};
     GRANT ALL ON SCHEMA public TO {{ .Environment.Values.postgresql.operationalUser }};
-

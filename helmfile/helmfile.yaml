@@ -12,8 +12,22 @@ repositories:
     url: https://airflow.apache.org
   - name: kedacore
     url: https://kedacore.github.io/charts
+  - name: external-secrets
+    url: https://charts.external-secrets.io
 
 releases:
+  - name: external-secrets
+    chart: ./services/external-secrets
+    namespace: external-secrets
+    createNamespace: true
+    labels:
+      app: external-secrets
+      tier: infra
+    values:
+      - services/external-secrets/external-secrets.values.yaml.gotmpl
+    secrets:
+      - services/external-secrets/external-secrets.credentials.yaml
+
   - name: keda
     chart: kedacore/keda
     version: 2.16.0

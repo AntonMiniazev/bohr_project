@@ -19,6 +19,7 @@ airflow:
     repository: CONTAINER_REGISTRY_ADDRESS
     tag: TAG
     pullPolicy: Always
+    pullSecret: GHCR_PULL_SECRET
 
 minio:
   node: MINIO_NODE
@@ -39,3 +40,7 @@ postgresql:
   airflowDatabase: airflow_db
   operationalUser: OPERATIONAL_USER
   operationalDatabase: OPERATIONAL_DB
+
+externalSecrets:
+  secretName: azure-kv-sp
+  storeName: azure-kv

@@ -31,6 +31,11 @@ images:
     tag: {{ .Environment.Values.airflow.image.tag }}
     pullPolicy: {{ .Environment.Values.airflow.image.pullPolicy }}
 
+{{- if .Environment.Values.airflow.image.pullSecret }}
+registry:
+  secretName: {{ .Environment.Values.airflow.image.pullSecret }}
+{{- end }}
+
 nodeSelector:
   kubernetes.io/hostname: {{ .Environment.Values.airflow.node }}
 

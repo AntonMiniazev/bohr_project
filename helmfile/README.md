@@ -1,6 +1,6 @@
 # Helmfile: Cluster Services Deployment
 
-This Helmfile configuration deploys platform services into the Kubernetes cluster after the control plane and workers are ready. It installs KEDA, PostgreSQL, MinIO, and Airflow, with secrets managed by SOPS and Azure Key Vault.
+This Helmfile configuration deploys platform services into the Kubernetes cluster after the control plane and workers are ready. It installs External Secrets Operator, KEDA, PostgreSQL, MinIO, and Airflow, with secrets managed by SOPS and Azure Key Vault.
 
 Guide
 - [Helmfile: Cluster Services Deployment](#helmfile-cluster-services-deployment)
@@ -31,16 +31,19 @@ Cluster access
 ## Detailed description of deployed infrastructure
 
 Namespaces
+- `external-secrets`: External Secrets Operator.
 - `keda`: KEDA operator and metrics components.
 - `ampere`: PostgreSQL, MinIO, and Airflow workloads.
 
 Services and roles
+- [External Secrets Operator](https://external-secrets.io/) (external-secrets chart): syncs external secret stores into Kubernetes Secrets.
 - [PostgreSQL](services/postgresql) (custom chart): metadata and operational databases for Airflow and application workloads.
 - [MinIO](services/minio) (custom chart): S3-compatible object storage.
 - [Airflow](https://airflow.apache.org/docs/helm-chart/1.18.0/) (apache-airflow chart): orchestration for pipelines and DAG execution.
 - [KEDA](https://github.com/kedacore/charts) (kedacore chart): event-driven autoscaling for Airflow workers.
 
 Versions (current defaults)
+- External Secrets chart `0.10.5`: [`helmfile.yaml`](helmfile.yaml)
 - KEDA chart `2.16.0`: [`helmfile.yaml`](helmfile.yaml)
 - Airflow chart `1.18.0`: [`helmfile.yaml`](helmfile.yaml)
 - Airflow image tag: [`env.yaml`](env.yaml)
@@ -57,6 +60,7 @@ Credential templates
 - [`services/airflow/airflow.webserver-secret_template.yaml`](services/airflow/airflow.webserver-secret_template.yaml)
 - [`services/airflow/git-credentials_template.yaml`](services/airflow/git-credentials_template.yaml)
 - [`services/minio/minio.credentials_template.yaml`](services/minio/minio.credentials_template.yaml)
+- [`services/external-secrets/external-secrets.credentials_template.yaml`](services/external-secrets/external-secrets.credentials_template.yaml)
 
 Configuration inputs
 - Environment values: [`env.yaml`](env.yaml)
@@ -85,3 +89,4 @@ Files to review
 - [`services/minio`](services/minio)
 - [`services/airflow`](services/airflow)
 - [`services/keda`](services/keda)
+- [`services/external-secrets`](services/external-secrets)
