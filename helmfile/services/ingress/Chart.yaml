@@ -1,0 +1,5 @@
+apiVersion: v2
+name: ingress-resources
+description: Ingress resources, certificates, and TCP services for cluster endpoints.
+type: application
+version: 0.1.0

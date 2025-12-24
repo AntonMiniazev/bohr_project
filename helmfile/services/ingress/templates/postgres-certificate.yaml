@@ -1,0 +1,16 @@
+{{- if .Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate" }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: postgres-cert
+  namespace: {{ .Values.namespace }}
+spec:
+  secretName: {{ .Values.tls.postgresSecret }}
+  dnsNames:
+    - {{ .Values.hosts.postgres | quote }}
+    - {{ .Values.tcp.postgresService | quote }}
+    - {{ printf "%s.%s.svc.cluster.local" .Values.tcp.postgresService .Values.namespace | quote }}
+  issuerRef:
+    name: {{ .Values.tls.caIssuerName }}
+    kind: ClusterIssuer
+{{- end }}

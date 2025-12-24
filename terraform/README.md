@@ -67,7 +67,7 @@ Components installed on the control plane
 - kubeadm, kubelet, kubectl (control plane and node agent)
 - Cilium agent + operator + envoy (pod networking)
 - local-path-provisioner (default storage class)
-- Helm, Helmfile, and SOPS (GitOps tooling)
+- Helm, Helmfile, and SOPS (GitOps tooling for later service deployments, ingress, and secrets)
 
 Components installed on worker nodes
 - containerd
@@ -76,6 +76,8 @@ Components installed on worker nodes
 
 Version sources
 - Package versions are defined in `terraform/libvirt/terraform.tfvars` under `packages.*`.
+
+Service exposure (ingress routes and TCP forwarding) is configured later via Helmfile. See [`helmfile/README.md`](../helmfile/README.md).
 
 ## Steps of deployment
 

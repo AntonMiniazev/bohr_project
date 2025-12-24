@@ -34,6 +34,10 @@ spec:
                 secretKeyRef:
                   name: minio-creds
                   key: MINIO_SECRET_KEY
+            - name: MINIO_BROWSER_REDIRECT_URL
+              value: "https://{{ .Values.ingress.host }}"
+            - name: MINIO_SERVER_URL
+              value: "{{ .Values.server.url }}"
           ports:
             - containerPort: 9000  # S3 API
             - containerPort: 9001  # Console UI

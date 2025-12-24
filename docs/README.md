@@ -1,11 +1,7 @@
 # Architecture Documentation
 
 ## Purpose
-Prepared C4-like documentation for the self-service project backend on the home-lab. The goal is to communicate how the Developer operates the home-lab data platform, how synthetic data is transformed into curated SQL Server marts, and how the public dashboard consumes those metrics without exposing private infrastructure.
-Directory covers architecture of three projects:
-- [Ampere](https://github.com/AntonMiniazev/ampere_project): specifies on ETL processes
-- [Bohr](https://github.com/AntonMiniazev/bohr_project): specifies on backend deployment on home-lab
-- [CurrieM](https://github.com/AntonMiniazev/curiem_project): specifies on external reporting
+Prepared C4-like documentation for the home-lab Kubernetes deployment. The goal is to communicate how the Developer provisions the VM fleet, bootstraps the cluster, and deploys core services (cert-manager, ingress-nginx, External Secrets, PostgreSQL, MinIO, Airflow, KEDA) without exposing private infrastructure.
 
 
 ## Diagram inventory

@@ -1,0 +1,18 @@
+controller:
+  ingressClass: {{ .Environment.Values.ingress.className | quote }}
+  ingressClassResource:
+    name: {{ .Environment.Values.ingress.className | quote }}
+    enabled: true
+    default: true
+  service:
+    type: NodePort
+    nodePorts:
+      http: {{ .Environment.Values.ingress.controller.httpNodePort }}
+      https: {{ .Environment.Values.ingress.controller.httpsNodePort }}
+      tcp:
+        5432: {{ .Environment.Values.ingress.controller.tcpNodePorts.postgres }}
+  extraArgs:
+    tcp-services-configmap: "ingress-nginx/tcp-services"
+
+tcp:
+  "5432": "{{ .Environment.Values.global.namespace }}/{{ .Environment.Values.postgresql.host }}:{{ .Environment.Values.postgresql.port }}"

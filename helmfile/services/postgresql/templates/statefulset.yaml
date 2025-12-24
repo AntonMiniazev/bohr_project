@@ -35,12 +35,13 @@ spec:
 {{ toYaml . | nindent 8 }}
 {{- end }}
 
-{{- with .Values.volumePermissions }}
-{{- if .enabled }}
+{{- $volumePermissions := and .Values.volumePermissions .Values.volumePermissions.enabled }}
+{{- if or $volumePermissions .Values.tls.enabled }}
       initContainers:
+{{- if $volumePermissions }}
         - name: volume-permissions
-          image: "{{ .image.repository }}:{{ .image.tag }}"
-          imagePullPolicy: {{ .image.pullPolicy }}
+          image: "{{ .Values.volumePermissions.image.repository }}:{{ .Values.volumePermissions.image.tag }}"
+          imagePullPolicy: {{ .Values.volumePermissions.image.pullPolicy }}
           command:
             - sh
             - -c
@@ -50,6 +51,70 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
+{{- end }}
+{{- if .Values.tls.enabled }}
+        - name: configure-tls
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              DATA_DIR="${PGDATA:-/var/lib/postgresql/data}"
+              if [ ! -f /tls/tls.crt ] || [ ! -f /tls/tls.key ]; then
+                exit 0
+              fi
+              if [ ! -d "$DATA_DIR" ] || [ ! -f "$DATA_DIR/PG_VERSION" ]; then
+                exit 0
+              fi
+              cp /tls/tls.crt "$DATA_DIR/server.crt"
+              cp /tls/tls.key "$DATA_DIR/server.key"
+              chmod 600 "$DATA_DIR/server.key"
+
+              if [ -f "$DATA_DIR/postgresql.conf" ]; then
+                if grep -q "^#\\?ssl = " "$DATA_DIR/postgresql.conf"; then
+                  sed -i "s/^#\\?ssl = .*/ssl = on/" "$DATA_DIR/postgresql.conf"
+                else
+                  echo "ssl = on" >> "$DATA_DIR/postgresql.conf"
+                fi
+                if grep -q "^#\\?ssl_cert_file = " "$DATA_DIR/postgresql.conf"; then
+                  sed -i "s/^#\\?ssl_cert_file = .*/ssl_cert_file = 'server.crt'/" "$DATA_DIR/postgresql.conf"
+                else
+                  echo "ssl_cert_file = 'server.crt'" >> "$DATA_DIR/postgresql.conf"
+                fi
+                if grep -q "^#\\?ssl_key_file = " "$DATA_DIR/postgresql.conf"; then
+                  sed -i "s/^#\\?ssl_key_file = .*/ssl_key_file = 'server.key'/" "$DATA_DIR/postgresql.conf"
+                else
+                  echo "ssl_key_file = 'server.key'" >> "$DATA_DIR/postgresql.conf"
+                fi
+              fi
+
+{{- if .Values.tls.allowedCidrs }}
+              if [ -f "$DATA_DIR/pg_hba.conf" ]; then
+                tmp_hba="$(mktemp)"
+                {
+                  echo "host all all 127.0.0.1/32 trust"
+                  echo "host all all ::1/128 trust"
+                  echo "hostnossl all all 0.0.0.0/0 reject"
+                  echo "hostnossl all all ::/0 reject"
+                } > "$tmp_hba"
+{{- range .Values.tls.allowedCidrs }}
+                echo "hostssl all all {{ . }} scram-sha-256" >> "$tmp_hba"
+{{- end }}
+                cat "$tmp_hba" "$DATA_DIR/pg_hba.conf" > "$DATA_DIR/pg_hba.conf.new"
+                mv "$DATA_DIR/pg_hba.conf.new" "$DATA_DIR/pg_hba.conf"
+                rm -f "$tmp_hba"
+              fi
+{{- end }}
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: tls
+              mountPath: /tls
+              readOnly: true
 {{- end }}
 {{- end }}
 
@@ -92,17 +157,30 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
-{{- if .Values.initdbScripts }}
+{{- if or .Values.initdbScripts .Values.tls.enabled }}
             - name: initdb
               mountPath: /docker-entrypoint-initdb.d
 {{- end }}
+{{- if .Values.tls.enabled }}
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+{{- end }}
 
-{{- if .Values.initdbScripts }}
+{{- if or .Values.initdbScripts .Values.tls.enabled }}
       volumes:
+{{- end }}
+{{- if or .Values.initdbScripts .Values.tls.enabled }}
         - name: initdb
           configMap:
             name: {{ include "postgresql.name" . }}-initdb
             defaultMode: 0755
+{{- end }}
+{{- if .Values.tls.enabled }}
+        - name: tls
+          secret:
+            secretName: {{ .Values.tls.secretName }}
+            optional: true
 {{- end }}
 
   volumeClaimTemplates:

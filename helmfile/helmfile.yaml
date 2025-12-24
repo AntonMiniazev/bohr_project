@@ -4,6 +4,7 @@ bases:
 helmDefaults:
   wait: true
   timeout: 600
+  cleanupOnFail: true
 
 repositories:
   - name: bitnami
@@ -14,8 +15,34 @@ repositories:
     url: https://kedacore.github.io/charts
   - name: external-secrets
     url: https://charts.external-secrets.io
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+  - name: jetstack
+    url: https://charts.jetstack.io
 
 releases:
+  - name: cert-manager
+    chart: jetstack/cert-manager
+    version: 1.16.3
+    namespace: cert-manager
+    createNamespace: true
+    labels:
+      app: cert-manager
+      tier: infra
+    values:
+      - services/cert-manager/cert-manager.values.yaml.gotmpl
+
+  - name: ingress-nginx
+    chart: ingress-nginx/ingress-nginx
+    version: 4.11.2
+    namespace: ingress-nginx
+    createNamespace: true
+    labels:
+      app: ingress-nginx
+      tier: infra
+    values:
+      - services/ingress-nginx/ingress-nginx.values.yaml.gotmpl
+
   - name: external-secrets
     chart: ./services/external-secrets
     namespace: external-secrets
@@ -27,6 +54,19 @@ releases:
       - services/external-secrets/external-secrets.values.yaml.gotmpl
     secrets:
       - services/external-secrets/external-secrets.credentials.yaml
+
+  - name: ingress-resources
+    chart: ./services/ingress
+    namespace: "{{ .Environment.Values.global.namespace }}"
+    createNamespace: true
+    labels:
+      app: ingress
+      tier: infra
+    values:
+      - services/ingress/ingress.values.yaml.gotmpl
+    needs:
+      - cert-manager/cert-manager
+      - ingress-nginx/ingress-nginx
 
   - name: keda
     chart: kedacore/keda

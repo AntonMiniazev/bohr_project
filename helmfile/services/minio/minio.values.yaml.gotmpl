@@ -4,16 +4,14 @@ image:
   repository: {{ .Environment.Values.minio.repo }}
   tag: {{ .Environment.Values.minio.release }}
 service:
-  type: NodePort
+  type: ClusterIP
   ports:
     - name: s3
       port: 9000
       targetPort: 9000
-      nodePort: 30091
     - name: console
       port: 9001
       targetPort: 9001
-      nodePort: 30090
 resources:
   requests:
     cpu: "250m"
@@ -29,3 +27,12 @@ users:
     existingSecret: minio-creds
 nodeSelector:
   kubernetes.io/hostname: {{ .Environment.Values.minio.node }}
+ingress:
+  enabled: true
+  className: {{ .Environment.Values.ingress.className }}
+  host: {{ .Environment.Values.ingress.hosts.minio }}
+  s3Host: {{ .Environment.Values.minio.s3_endpoint }}
+  tlsSecret: {{ .Environment.Values.ingress.tls.minioSecret }}
+
+server:
+  url: {{ .Environment.Values.minio.server_url }}

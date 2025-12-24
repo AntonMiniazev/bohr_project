@@ -1,0 +1,16 @@
+namespace: {{ .Environment.Values.global.namespace }}
+ingressClassName: {{ .Environment.Values.ingress.className }}
+hosts:
+  airflow: {{ .Environment.Values.ingress.hosts.airflow }}
+  minio: {{ .Environment.Values.ingress.hosts.minio }}
+  postgres: {{ .Environment.Values.ingress.hosts.postgres }}
+  minioS3: {{ .Environment.Values.minio.s3_endpoint }}
+tls:
+  caIssuerName: {{ .Environment.Values.ingress.tls.caIssuerName }}
+  caSecretName: {{ .Environment.Values.ingress.tls.caSecretName }}
+  airflowSecret: {{ .Environment.Values.ingress.tls.airflowSecret }}
+  minioSecret: {{ .Environment.Values.ingress.tls.minioSecret }}
+  postgresSecret: {{ .Environment.Values.ingress.tls.postgresSecret }}
+tcp:
+  postgresService: {{ .Environment.Values.postgresql.host }}
+  postgresPort: {{ .Environment.Values.postgresql.port }}

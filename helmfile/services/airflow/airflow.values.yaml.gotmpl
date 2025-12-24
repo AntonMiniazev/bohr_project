@@ -36,6 +36,16 @@ registry:
   secretName: {{ .Environment.Values.airflow.image.pullSecret }}
 {{- end }}
 
+ingress:
+  apiServer:
+    enabled: true
+    ingressClassName: {{ .Environment.Values.ingress.className | quote }}
+    hosts:
+      - name: {{ .Environment.Values.ingress.hosts.airflow | quote }}
+        tls:
+          enabled: true
+          secretName: {{ .Environment.Values.ingress.tls.airflowSecret | quote }}
+
 nodeSelector:
   kubernetes.io/hostname: {{ .Environment.Values.airflow.node }}
 
@@ -144,12 +154,11 @@ apiServer:
       cpu: "700m"
       memory: "1560Mi"
   service:
-    type: NodePort
+    type: ClusterIP
     ports:
       - name: api-server
         port: 8080
         targetPort: api-server
-        nodePort: 30080
   env:
     - name: AIRFLOW__API__BASE_URL
       value: {{ .Environment.Values.airflow.host }}

@@ -25,12 +25,12 @@ minio:
   node: MINIO_NODE
   release: RELEASE.2025-09-07T16-13-09Z-cpuv1
   s3_endpoint: "s3.minio.local"
+  server_url: "http://minio.NAMESPACE.svc.cluster.local:9000"
   repo: quay.io/minio/minio
 
 postgresql:
   host: postgres-service
   port: 5432
-  nodeport: 31432
   node: POSTGRES_NODE
   image:
     repository: postgres
@@ -40,7 +40,32 @@ postgresql:
   airflowDatabase: airflow_db
   operationalUser: OPERATIONAL_USER
   operationalDatabase: OPERATIONAL_DB
+  tls:
+    enabled: false
+  access:
+    allowedCidrs:
+      - CLUSTER_POD_CIDR
+      - LAN_CIDR
+      - TAILSCALE_CIDR
 
 externalSecrets:
   secretName: azure-kv-sp
   storeName: azure-kv
+
+ingress:
+  className: nginx
+  controller:
+    httpNodePort: 30080
+    httpsNodePort: 30443
+    tcpNodePorts:
+      postgres: 32432
+  hosts:
+    airflow: airflow.local
+    minio: minio.local
+    postgres: postgres.local
+  tls:
+    caIssuerName: local-ca
+    caSecretName: local-ca
+    airflowSecret: airflow-tls
+    minioSecret: minio-tls
+    postgresSecret: postgres-tls

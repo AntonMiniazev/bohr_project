@@ -1,0 +1,17 @@
+{{- if .Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate" }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: minio-cert
+  namespace: {{ .Values.namespace }}
+spec:
+  secretName: {{ .Values.tls.minioSecret }}
+  dnsNames:
+    - {{ .Values.hosts.minio | quote }}
+{{- if .Values.hosts.minioS3 }}
+    - {{ .Values.hosts.minioS3 | quote }}
+{{- end }}
+  issuerRef:
+    name: {{ .Values.tls.caIssuerName }}
+    kind: ClusterIssuer
+{{- end }}

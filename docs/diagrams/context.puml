@@ -21,7 +21,7 @@ Rel(dev, git, "Pushes IaC and images", "Git/CI")
 Rel(dev, kvm, "Runs Terraform and manages VMs", "SSH")
 Rel(dev, homek8s, "Applies Helmfile releases", "kubectl/Helmfile")
 Rel(dev, keyvault, "Manages keys and access", "Azure")
-Rel(homek8s, keyvault, "Decrypts secrets via SOPS", "KMS")
+Rel(homek8s, keyvault, "Decrypts and syncs secrets", "SOPS/ESO")
 Rel(homek8s, git, "Pulls container images", "Registry")
 Rel(apik8s, git, "Pulls container images", "Registry")
 

@@ -7,9 +7,8 @@ image:
 
 service:
   name: {{ .Environment.Values.postgresql.host }}
-  type: NodePort
+  type: ClusterIP
   port: {{ .Environment.Values.postgresql.port }}
-  nodePort: {{ .Environment.Values.postgresql.nodeport }}
 
 persistence:
   enabled: true
@@ -18,6 +17,16 @@ persistence:
 
 nodeSelector:
   kubernetes.io/hostname: {{ .Environment.Values.postgresql.node }}
+
+tls:
+  enabled: {{ .Environment.Values.postgresql.tls.enabled | default false }}
+  secretName: {{ .Environment.Values.ingress.tls.postgresSecret }}
+
+{{- with .Environment.Values.postgresql.access.allowedCidrs }}
+access:
+  allowedCidrs:
+{{ toYaml . | nindent 4 }}
+{{- end }}
 
 auth:
   username: postgres

@@ -1,12 +1,67 @@
-{{- if .Values.initdbScripts }}
+{{- if or .Values.initdbScripts .Values.tls.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "postgresql.name" . }}-initdb
   namespace: {{ .Release.Namespace }}
 data:
-{{- range $name, $content := .Values.initdbScripts }}
+{{- with .Values.initdbScripts }}
+{{- range $name, $content := . }}
   {{ $name }}: |-
 {{ tpl $content $ | indent 4 }}
+{{- end }}
+{{- end }}
+{{- if .Values.tls.enabled }}
+  01-enable-tls.sh: |-
+    #!/bin/sh
+    set -eu
+
+    if [ -f /tls/tls.crt ] && [ -f /tls/tls.key ]; then
+      cp /tls/tls.crt "$PGDATA/server.crt"
+      cp /tls/tls.key "$PGDATA/server.key"
+      chmod 600 "$PGDATA/server.key"
+
+      if ! grep -q "^ssl = on" "$PGDATA/postgresql.conf"; then
+        {
+          echo "ssl = on"
+          echo "ssl_cert_file = 'server.crt'"
+          echo "ssl_key_file = 'server.key'"
+        } >> "$PGDATA/postgresql.conf"
+      fi
+    fi
+{{- end }}
+
+{{- with .Values.access.allowedCidrs }}
+  02-pg-hba-allowlist.sh: |-
+    #!/bin/sh
+    set -eu
+
+    if [ ! -f "$PGDATA/pg_hba.conf" ]; then
+      exit 0
+    fi
+
+    tmp_hba="$(mktemp)"
+    {
+      echo "host all all 127.0.0.1/32 trust"
+      echo "host all all ::1/128 trust"
+{{- if $.Values.tls.enabled }}
+      echo "hostnossl all all 0.0.0.0/0 reject"
+      echo "hostnossl all all ::/0 reject"
+{{- end }}
+{{- range . }}
+      echo "{{ if $.Values.tls.enabled }}hostssl{{ else }}host{{ end }} all all {{ . }} scram-sha-256"
+{{- end }}
+{{- if $.Values.tls.enabled }}
+      echo "hostssl all all 0.0.0.0/0 reject"
+      echo "hostssl all all ::/0 reject"
+{{- else }}
+      echo "host all all 0.0.0.0/0 reject"
+      echo "host all all ::/0 reject"
+{{- end }}
+    } > "$tmp_hba"
+
+    cat "$tmp_hba" "$PGDATA/pg_hba.conf" > "$PGDATA/pg_hba.conf.new"
+    mv "$PGDATA/pg_hba.conf.new" "$PGDATA/pg_hba.conf"
+    rm -f "$tmp_hba"
 {{- end }}
 {{- end }}
