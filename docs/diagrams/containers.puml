@@ -25,6 +25,8 @@ System_Boundary(home, "Home Lab") {
         Container(postgres, "PostgreSQL", "Database", "Metadata and operational databases")
         Container(minio, "MinIO", "Object storage", "S3-compatible buckets")
         Container(airflow, "Airflow", "Workflow engine", "Schedules and executes pipelines")
+        Container(prometheus, "Prometheus", "Metrics", "Collects cluster metrics")
+        Container(grafana, "Grafana", "Dashboards", "Visualizes metrics")
         Container(keda, "KEDA", "Autoscaler", "Scales Airflow workers")
     }
 }
@@ -38,9 +40,12 @@ Rel(ingressResources, ingress, "Defines routes and TCP mappings")
 Rel(ingress, airflow, "Routes HTTP")
 Rel(ingress, minio, "Routes HTTP/S3")
 Rel(ingress, postgres, "Routes TCP", "5432")
+Rel(ingress, grafana, "Routes HTTP")
 Rel(cluster, ghcr, "Pulls images", "Registry")
 Rel(airflow, postgres, "Stores metadata", "SQL")
 Rel(airflow, minio, "Reads/writes objects", "S3")
+Rel(prometheus, cluster, "Scrapes metrics")
+Rel(grafana, prometheus, "Queries metrics")
 Rel(keda, airflow, "Scales workers", "KEDA API")
 
 SHOW_LEGEND()

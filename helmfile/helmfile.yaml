@@ -5,6 +5,7 @@ helmDefaults:
   wait: true
   timeout: 600
   cleanupOnFail: true
+  atomic: true
 
 repositories:
   - name: bitnami
@@ -15,6 +16,8 @@ repositories:
     url: https://kedacore.github.io/charts
   - name: external-secrets
     url: https://charts.external-secrets.io
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
   - name: ingress-nginx
     url: https://kubernetes.github.io/ingress-nginx
   - name: jetstack
@@ -51,9 +54,37 @@ releases:
       app: external-secrets
       tier: infra
     values:
+      - services/external-secrets/external-secrets.operator.values.yaml.gotmpl
+
+  - name: external-secrets-resources
+    chart: ./services/external-secrets
+    namespace: "{{ .Environment.Values.global.namespace }}"
+    createNamespace: true
+    labels:
+      app: external-secrets
+      tier: infra
+    values:
       - services/external-secrets/external-secrets.values.yaml.gotmpl
     secrets:
       - services/external-secrets/external-secrets.credentials.yaml
+    needs:
+      - external-secrets/external-secrets
+
+  - name: kube-prometheus-stack
+    chart: prometheus-community/kube-prometheus-stack
+    version: 80.6.0
+    namespace: "{{ .Environment.Values.monitoring.namespace }}"
+    createNamespace: true
+    labels:
+      app: monitoring
+      tier: observability
+    values:
+      - services/monitoring/kube-prometheus-stack.values.yaml.gotmpl
+    secrets:
+      - services/monitoring/grafana.credentials.yaml
+    needs:
+      - "{{ .Environment.Values.global.namespace }}/ingress-resources"
+      - ingress-nginx/ingress-nginx
 
   - name: ingress-resources
     chart: ./services/ingress

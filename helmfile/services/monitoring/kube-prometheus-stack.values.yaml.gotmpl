@@ -1,0 +1,19 @@
+alertmanager:
+  enabled: false
+
+prometheus:
+  prometheusSpec:
+    retention: 3d
+
+grafana:
+  ingress:
+    enabled: true
+    ingressClassName: {{ .Environment.Values.ingress.className }}
+    annotations:
+      cert-manager.io/cluster-issuer: {{ .Environment.Values.ingress.tls.caIssuerName }}
+    hosts:
+      - {{ .Environment.Values.ingress.hosts.grafana }}
+    tls:
+      - secretName: {{ .Environment.Values.ingress.tls.grafanaSecret }}
+        hosts:
+          - {{ .Environment.Values.ingress.hosts.grafana }}

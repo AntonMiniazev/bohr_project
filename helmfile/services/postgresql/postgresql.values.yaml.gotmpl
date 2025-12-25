@@ -18,6 +18,10 @@ persistence:
 nodeSelector:
   kubernetes.io/hostname: {{ .Environment.Values.postgresql.node }}
 
+resources:
+  requests:
+    cpu: "1500m"
+
 tls:
   enabled: {{ .Environment.Values.postgresql.tls.enabled | default false }}
   secretName: {{ .Environment.Values.ingress.tls.postgresSecret }}
@@ -55,4 +59,6 @@ initdbScripts:
     GRANT ALL PRIVILEGES ON DATABASE {{ .Environment.Values.postgresql.operationalDatabase }} TO {{ .Environment.Values.postgresql.operationalUser }};
     \connect {{ .Environment.Values.postgresql.operationalDatabase }}
     ALTER SCHEMA public OWNER TO {{ .Environment.Values.postgresql.operationalUser }};
+    CREATE SCHEMA {{ .Environment.Values.postgresql.sourceSchema }};
+    GRANT ALL ON SCHEMA {{ .Environment.Values.postgresql.sourceSchema }} TO {{ .Environment.Values.postgresql.operationalUser }};
     GRANT ALL ON SCHEMA public TO {{ .Environment.Values.postgresql.operationalUser }};

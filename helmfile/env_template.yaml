@@ -10,6 +10,8 @@ nodes:
   postgresql: POSTGRES_NODE_IP
   minio: MINIO_NODE_IP
   airflow: AIRFLOW_NODE_IP
+monitoring:
+  namespace: monitoring
 
 airflow:
   gitRepo: "CUSTOM REPO: custom_images\airflow"
@@ -63,9 +65,11 @@ ingress:
     airflow: airflow.local
     minio: minio.local
     postgres: postgres.local
+    grafana: grafana.local
   tls:
     caIssuerName: local-ca
     caSecretName: local-ca
     airflowSecret: airflow-tls
     minioSecret: minio-tls
     postgresSecret: postgres-tls
+    grafanaSecret: grafana-tls

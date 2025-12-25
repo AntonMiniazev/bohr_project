@@ -1,5 +1,5 @@
 ## Overview
-This repository is a sandbox for provisioning a KVM/libvirt VM fleet and deploying a Kubernetes-based data platform. It uses Terraform + Cloud-Init for VM bootstrap, kubeadm for cluster initialization, and Helmfile to deploy infrastructure services and workloads (cert-manager, ingress-nginx, External Secrets Operator, PostgreSQL, MinIO, Airflow, KEDA). Services are exposed through ingress routes and TCP forwarding for internal access.
+This repository is a sandbox for provisioning a KVM/libvirt VM fleet and deploying a Kubernetes-based data platform. It uses Terraform + Cloud-Init for VM bootstrap, kubeadm for cluster initialization, and Helmfile to deploy infrastructure services and workloads (cert-manager, ingress-nginx, External Secrets Operator, PostgreSQL, MinIO, Airflow, KEDA, Prometheus/Grafana). Services are exposed through ingress routes and TCP forwarding for internal access.
 
 ## Repository layout
 - [`terraform/`](terraform/) VM provisioning with libvirt, Cloud-Init, and kubeadm.

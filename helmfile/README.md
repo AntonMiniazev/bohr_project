@@ -35,12 +35,15 @@ Namespaces
 - `ingress-nginx`: ingress-nginx controller and TCP proxying.
 - `external-secrets`: External Secrets Operator.
 - `keda`: KEDA operator and metrics components.
+- `monitoring`: Prometheus and Grafana monitoring stack.
 - `ampere`: application workloads (PostgreSQL, MinIO, Airflow) and ingress resources.
 
 Services and roles
 - [cert-manager](https://cert-manager.io/) (jetstack chart): issues TLS certificates for ingress hosts.
 - [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) (ingress-nginx chart): ingress controller for HTTP/S and TCP services.
 - [External Secrets Operator](https://external-secrets.io/) (external-secrets chart): syncs external secret stores into Kubernetes Secrets.
+- External Secrets resources (external-secrets chart): SecretStore and ExternalSecret manifests for Key Vault-backed secrets.
+- [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) (prometheus-community chart): Prometheus metrics collection with Grafana dashboards.
 - [Ingress resources](services/ingress) (custom chart): ingress routes, TCP mappings, and local CA certificates for internal TLS.
 - [PostgreSQL](services/postgresql) (custom chart): metadata and operational databases for Airflow and application workloads, exposed through ingress-nginx TCP forwarding with allowlisted networks.
 - [MinIO](services/minio) (custom chart): S3-compatible object storage.
@@ -51,6 +54,7 @@ Versions (current defaults)
 - cert-manager chart `1.16.3`: [`helmfile.yaml`](helmfile.yaml)
 - ingress-nginx chart `4.11.2`: [`helmfile.yaml`](helmfile.yaml)
 - External Secrets chart `0.10.5`: [`helmfile.yaml`](helmfile.yaml)
+- kube-prometheus-stack chart `80.6.0`: [`helmfile.yaml`](helmfile.yaml)
 - KEDA chart `2.16.0`: [`helmfile.yaml`](helmfile.yaml)
 - Airflow chart `1.18.0`: [`helmfile.yaml`](helmfile.yaml)
 - Airflow image tag: [`env.yaml`](env.yaml)
@@ -69,6 +73,7 @@ Credential templates
 - [`services/airflow/git-credentials_template.yaml`](services/airflow/git-credentials_template.yaml)
 - [`services/minio/minio.credentials_template.yaml`](services/minio/minio.credentials_template.yaml)
 - [`services/external-secrets/external-secrets.credentials_template.yaml`](services/external-secrets/external-secrets.credentials_template.yaml)
+- [`services/monitoring/grafana.credentials_template.yaml`](services/monitoring/grafana.credentials_template.yaml)
 
 Configuration inputs
 - Environment values: [`env.yaml`](env.yaml)
@@ -77,6 +82,7 @@ Configuration inputs
   - PostgreSQL allowlist CIDRs are defined under `postgresql.access.allowedCidrs`.
   - PostgreSQL TLS can be toggled with `postgresql.tls.enabled` (disabled by default).
   - ingress-nginx TCP NodePort is set with `ingress.controller.tcpNodePorts.postgres`.
+  - Helm installs are atomic with cleanup-on-fail enabled by default.
 
 ## Steps of deployment
 

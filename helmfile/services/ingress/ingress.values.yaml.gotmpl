@@ -4,6 +4,7 @@ hosts:
   airflow: {{ .Environment.Values.ingress.hosts.airflow }}
   minio: {{ .Environment.Values.ingress.hosts.minio }}
   postgres: {{ .Environment.Values.ingress.hosts.postgres }}
+  grafana: {{ .Environment.Values.ingress.hosts.grafana }}
   minioS3: {{ .Environment.Values.minio.s3_endpoint }}
 tls:
   caIssuerName: {{ .Environment.Values.ingress.tls.caIssuerName }}
@@ -11,6 +12,7 @@ tls:
   airflowSecret: {{ .Environment.Values.ingress.tls.airflowSecret }}
   minioSecret: {{ .Environment.Values.ingress.tls.minioSecret }}
   postgresSecret: {{ .Environment.Values.ingress.tls.postgresSecret }}
+  grafanaSecret: {{ .Environment.Values.ingress.tls.grafanaSecret }}
 tcp:
   postgresService: {{ .Environment.Values.postgresql.host }}
   postgresPort: {{ .Environment.Values.postgresql.port }}
