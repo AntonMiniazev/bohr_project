@@ -25,8 +25,14 @@ resource "null_resource" "ampere_pool_path" {
   provisioner "local-exec" {
     command = <<EOT
       sudo mkdir -p /var/lib/libvirt/images/ampere
+      sudo mkdir -p /var/lib/libvirt/images/ampere/cloudinit
       sudo chown -R libvirt-qemu:kvm /var/lib/libvirt/images/ampere
-      sudo chmod -R 770 /var/lib/libvirt/images/ampere    
+      sudo chmod -R 770 /var/lib/libvirt/images/ampere
+
+      sudo tee /etc/tmpfiles.d/terraform-libvirt-cloudinit.conf > /dev/null <<'EOF'
+L /tmp/terraform-provider-libvirt-cloudinit - - - - /var/lib/libvirt/images/ampere/cloudinit
+EOF
+      sudo systemd-tmpfiles --create /etc/tmpfiles.d/terraform-libvirt-cloudinit.conf
     EOT
   }
 }
@@ -200,7 +206,6 @@ resource "libvirt_volume" "control_plane_disk" {
 
 resource "libvirt_cloudinit_disk" "control_plane_seed" {
   name           = "${var.fleet.control_plane.hostname}-seed.iso"
-  pool           = libvirt_pool.ampere_pool.name
   user_data      = local.cloudinit_cp
   network_config = local.control_plane_network_config
 
@@ -287,7 +292,6 @@ resource "libvirt_cloudinit_disk" "worker_seed" {
   for_each = var.fleet.worker_nodes
 
   name           = "${each.key}-seed.iso"
-  pool           = libvirt_pool.ampere_pool.name
   user_data      = local.worker_user_data[each.key]
   network_config = local.worker_network_config[each.key]
 
