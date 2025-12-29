@@ -1,0 +1,16 @@
+ivyCache:
+  name: {{ .Environment.Values.ivyCache.name }}
+  size: {{ .Environment.Values.ivyCache.size }}
+  storageClass: {{ .Environment.Values.ivyCache.storageClass }}
+  accessMode: {{ .Environment.Values.ivyCache.accessMode }}
+  mountPath: {{ .Environment.Values.ivyCache.mountPath }}
+  node: {{ .Environment.Values.ivyCache.node }}
+  loader:
+    enabled: {{ .Environment.Values.ivyCache.loader.enabled }}
+    image: {{ .Environment.Values.ivyCache.loader.image }}
+  bootstrap:
+    enabled: {{ .Environment.Values.ivyCache.bootstrap.enabled }}
+    image: {{ .Environment.Values.ivyCache.bootstrap.image }}
+    ttlSecondsAfterFinished: {{ .Environment.Values.ivyCache.bootstrap.ttlSecondsAfterFinished }}
+    urls:
+{{ toYaml .Environment.Values.ivyCache.bootstrap.urls | nindent 6 }}

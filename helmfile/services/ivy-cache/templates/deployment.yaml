@@ -1,0 +1,31 @@
+{{- if .Values.ivyCache.loader.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ivy-cache-loader
+  labels:
+    app: ivy-cache-loader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ivy-cache-loader
+  template:
+    metadata:
+      labels:
+        app: ivy-cache-loader
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: {{ .Values.ivyCache.node }}
+      containers:
+        - name: loader
+          image: {{ .Values.ivyCache.loader.image }}
+          command: ["sh", "-c", "sleep infinity"]
+          volumeMounts:
+            - name: ivy-cache
+              mountPath: {{ .Values.ivyCache.mountPath }}
+      volumes:
+        - name: ivy-cache
+          persistentVolumeClaim:
+            claimName: {{ .Values.ivyCache.name }}
+{{- end }}

@@ -99,6 +99,16 @@ releases:
     values:
       - services/spark-operator/spark-operator.values.yaml.gotmpl
 
+  - name: ivy-cache
+    chart: ./services/ivy-cache
+    namespace: "{{ .Environment.Values.global.namespace }}"
+    createNamespace: true
+    labels:
+      app: ivy-cache
+      tier: storage
+    values:
+      - services/ivy-cache/ivy-cache.values.yaml.gotmpl
+
   - name: ingress-resources
     chart: ./services/ingress
     namespace: "{{ .Environment.Values.global.namespace }}"

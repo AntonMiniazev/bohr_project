@@ -17,6 +17,22 @@ spark:
   node: SPARK_OPERATOR_NODE
   jobNamespaces:
     - NAMESPACE
+ivyCache:
+  name: IVY_CACHE_NAME
+  size: 10Gi
+  storageClass: STORAGECLASS_PROVIDER
+  accessMode: ReadWriteOnce
+  mountPath: /opt/spark/ivy
+  node: SPARK_OPERATOR_NODE
+  loader:
+    enabled: true
+    image: busybox:1.36
+  bootstrap:
+    enabled: true
+    image: curlimages/curl:8.7.1
+    ttlSecondsAfterFinished: 600
+    urls:
+      - JAR_URL
 
 airflow:
   gitRepo: "CUSTOM REPO: custom_images\airflow"

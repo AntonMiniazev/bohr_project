@@ -1,6 +1,6 @@
 # Helmfile: Cluster Services Deployment
 
-This Helmfile configuration deploys platform services into the Kubernetes cluster after the control plane and workers are ready. It installs cert-manager, ingress-nginx, External Secrets Operator, KEDA, PostgreSQL, MinIO, and Airflow, with secrets managed by SOPS and Azure Key Vault.
+This Helmfile configuration deploys platform services into the Kubernetes cluster after the control plane and workers are ready. It installs cert-manager, ingress-nginx, External Secrets Operator, KEDA, Spark Operator, monitoring, PostgreSQL, MinIO, and Airflow, with secrets managed by SOPS and Azure Key Vault.
 
 Guide
 - [Helmfile: Cluster Services Deployment](#helmfile-cluster-services-deployment)
@@ -46,6 +46,7 @@ Services and roles
 - External Secrets resources (external-secrets chart): SecretStore and ExternalSecret manifests for Key Vault-backed secrets.
 - [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) (prometheus-community chart): Prometheus metrics collection with Grafana dashboards.
 - [Spark Operator](https://github.com/kubeflow/spark-operator) (spark-operator chart): runs SparkApplication workloads for ETL and batch processing.
+- [Ivy cache](services/ivy-cache) (custom chart): shared PVC for Spark JAR dependencies, mountable by Spark driver/executor pods.
 - Airflow Spark RBAC (manifest): grants the Airflow worker service account permissions to create SparkApplication CRs.
 - [Ingress resources](services/ingress) (custom chart): ingress routes, TCP mappings, and local CA certificates for internal TLS.
 - [PostgreSQL](services/postgresql) (custom chart): metadata and operational databases for Airflow and application workloads, exposed through ingress-nginx TCP forwarding with allowlisted networks.
@@ -88,6 +89,7 @@ Configuration inputs
   - ingress-nginx TCP NodePort is set with `ingress.controller.tcpNodePorts.postgres`.
   - Helm installs are atomic with cleanup-on-fail enabled by default.
   - Spark Operator job namespaces are defined under `spark.jobNamespaces`.
+  - Ivy cache settings (PVC size, mount path, node) are defined under `ivyCache.*`.
 
 ## Steps of deployment
 
@@ -110,6 +112,7 @@ Files to review
 - [`services/postgresql`](services/postgresql)
 - [`services/minio`](services/minio)
 - [`services/airflow`](services/airflow)
-- [`services/airflow-spark-rbac.yaml`](services/airflow-spark-rbac.yaml)
+- [`services/airflow/airflow-spark-rbac.yaml`](services/airflow/airflow-spark-rbac.yaml)
+- [`services/ivy-cache`](services/ivy-cache)
 - [`services/keda`](services/keda)
 - [`services/external-secrets`](services/external-secrets)

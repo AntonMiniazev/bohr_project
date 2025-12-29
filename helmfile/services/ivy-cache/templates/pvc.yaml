@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.ivyCache.name }}
+  labels:
+    app: ivy-cache
+spec:
+  accessModes:
+    - {{ .Values.ivyCache.accessMode }}
+  storageClassName: {{ .Values.ivyCache.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.ivyCache.size }}

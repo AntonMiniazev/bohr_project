@@ -1,0 +1,44 @@
+{{- if and .Values.ivyCache.bootstrap.enabled (gt (len .Values.ivyCache.bootstrap.urls) 0) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ivy-cache-bootstrap
+  labels:
+    app: ivy-cache-bootstrap
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  {{- if .Values.ivyCache.bootstrap.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.ivyCache.bootstrap.ttlSecondsAfterFinished }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        app: ivy-cache-bootstrap
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: {{ .Values.ivyCache.node }}
+      restartPolicy: OnFailure
+      containers:
+        - name: bootstrap
+          image: {{ .Values.ivyCache.bootstrap.image }}
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              mkdir -p {{ .Values.ivyCache.mountPath }}
+              {{- range $url := .Values.ivyCache.bootstrap.urls }}
+              echo "Downloading {{ $url }}"
+              curl -fsSL "{{ $url }}" -o "{{ $.Values.ivyCache.mountPath }}/{{ base $url }}"
+              {{- end }}
+          volumeMounts:
+            - name: ivy-cache
+              mountPath: {{ .Values.ivyCache.mountPath }}
+      volumes:
+        - name: ivy-cache
+          persistentVolumeClaim:
+            claimName: {{ .Values.ivyCache.name }}
+{{- end }}
