@@ -12,11 +12,17 @@ nodes:
   airflow: AIRFLOW_NODE_IP
 monitoring:
   namespace: monitoring
+  node: MONITORING_NODE
+spark:
+  node: SPARK_OPERATOR_NODE
+  jobNamespaces:
+    - NAMESPACE
 
 airflow:
   gitRepo: "CUSTOM REPO: custom_images\airflow"
   host: "http://airflow.local"
   node: AIRFLOW_NODE
+  workerServiceAccount: AIRFLOW_WORKER_SERVICE_ACCOUNT
   image:
     repository: CONTAINER_REGISTRY_ADDRESS
     tag: TAG

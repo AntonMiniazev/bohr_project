@@ -18,6 +18,8 @@ repositories:
     url: https://charts.external-secrets.io
   - name: prometheus-community
     url: https://prometheus-community.github.io/helm-charts
+  - name: spark-operator
+    url: https://kubeflow.github.io/spark-operator
   - name: ingress-nginx
     url: https://kubernetes.github.io/ingress-nginx
   - name: jetstack
@@ -85,6 +87,17 @@ releases:
     needs:
       - "{{ .Environment.Values.global.namespace }}/ingress-resources"
       - ingress-nginx/ingress-nginx
+
+  - name: spark-operator
+    chart: spark-operator/spark-operator
+    version: 2.4.0
+    namespace: spark-operator
+    createNamespace: true
+    labels:
+      app: spark-operator
+      tier: data-processing
+    values:
+      - services/spark-operator/spark-operator.values.yaml.gotmpl
 
   - name: ingress-resources
     chart: ./services/ingress
@@ -157,6 +170,11 @@ releases:
         args:
           - "-c"
           - "sops -d services/airflow/git-credentials.yaml | kubectl apply -n ampere -f -"
+      - events: ["postapply"]
+        command: "bash"
+        args:
+          - "-c"
+          - "kubectl apply -f services/airflow/airflow-spark-rbac.yaml"
     needs:
       - keda/keda
       - "ampere/postgresql"

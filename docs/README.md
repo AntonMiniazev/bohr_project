@@ -1,7 +1,7 @@
 # Architecture Documentation
 
 ## Purpose
-Prepared C4-like documentation for the home-lab Kubernetes deployment. The goal is to communicate how the Developer provisions the VM fleet, bootstraps the cluster, and deploys core services (cert-manager, ingress-nginx, External Secrets, PostgreSQL, MinIO, Airflow, KEDA, Prometheus/Grafana) without exposing private infrastructure.
+Prepared C4-like documentation for the home-lab Kubernetes deployment. The goal is to communicate how the Developer provisions the VM fleet, bootstraps the cluster, and deploys core services (cert-manager, ingress-nginx, External Secrets, PostgreSQL, MinIO, Airflow, Spark Operator, KEDA, Prometheus/Grafana) without exposing private infrastructure. Spark Operator runs in the `spark-operator` namespace and submits SparkApplication workloads into `ampere`.
 
 
 ## Diagram inventory

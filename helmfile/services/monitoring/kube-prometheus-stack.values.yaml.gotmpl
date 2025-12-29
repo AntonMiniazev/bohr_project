@@ -1,11 +1,23 @@
 alertmanager:
   enabled: false
 
+kubeStateMetrics:
+  nodeSelector:
+    kubernetes.io/hostname: {{ .Environment.Values.monitoring.node }}
+
+prometheusOperator:
+  nodeSelector:
+    kubernetes.io/hostname: {{ .Environment.Values.monitoring.node }}
+
 prometheus:
   prometheusSpec:
     retention: 3d
+    nodeSelector:
+      kubernetes.io/hostname: {{ .Environment.Values.monitoring.node }}
 
 grafana:
+  nodeSelector:
+    kubernetes.io/hostname: {{ .Environment.Values.monitoring.node }}
   ingress:
     enabled: true
     ingressClassName: {{ .Environment.Values.ingress.className }}

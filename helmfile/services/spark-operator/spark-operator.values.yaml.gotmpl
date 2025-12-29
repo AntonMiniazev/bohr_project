@@ -1,0 +1,11 @@
+controller:
+  nodeSelector:
+    kubernetes.io/hostname: {{ .Environment.Values.spark.node }}
+
+webhook:
+  nodeSelector:
+    kubernetes.io/hostname: {{ .Environment.Values.spark.node }}
+
+spark:
+  jobNamespaces:
+{{ toYaml .Environment.Values.spark.jobNamespaces | nindent 4 }}

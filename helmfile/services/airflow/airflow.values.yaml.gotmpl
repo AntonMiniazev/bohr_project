@@ -50,6 +50,8 @@ nodeSelector:
   kubernetes.io/hostname: {{ .Environment.Values.airflow.node }}
 
 workers:
+  serviceAccount:
+    name: {{ .Environment.Values.airflow.workerServiceAccount | quote }}
   persistence:
     storageClassName: {{ .Environment.Values.global.storageClass }}
   livenessProbe:
