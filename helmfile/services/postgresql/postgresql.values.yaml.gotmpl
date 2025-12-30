@@ -20,7 +20,7 @@ nodeSelector:
 
 resources:
   requests:
-    cpu: "1500m"
+    cpu: "750m"
 
 tls:
   enabled: {{ .Environment.Values.postgresql.tls.enabled | default false }}
