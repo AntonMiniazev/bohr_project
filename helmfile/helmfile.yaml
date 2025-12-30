@@ -99,6 +99,16 @@ releases:
     values:
       - services/spark-operator/spark-operator.values.yaml.gotmpl
 
+  - name: airflow-spark-rbac
+    chart: ./services/airflow-spark-rbac
+    namespace: "{{ .Environment.Values.global.namespace }}"
+    createNamespace: true
+    labels:
+      app: airflow-spark-rbac
+      tier: workflow
+    values:
+      - services/airflow-spark-rbac/airflow-spark-rbac.values.yaml.gotmpl
+
   - name: ivy-cache
     chart: ./services/ivy-cache
     namespace: "{{ .Environment.Values.global.namespace }}"
@@ -180,11 +190,7 @@ releases:
         args:
           - "-c"
           - "sops -d services/airflow/git-credentials.yaml | kubectl apply -n ampere -f -"
-      - events: ["postapply"]
-        command: "bash"
-        args:
-          - "-c"
-          - "kubectl apply -f services/airflow/airflow-spark-rbac.yaml"
     needs:
       - keda/keda
+      - "{{ .Environment.Values.global.namespace }}/airflow-spark-rbac"
       - "ampere/postgresql"

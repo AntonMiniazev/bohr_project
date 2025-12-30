@@ -2,7 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: airflow-sparkapplications
-  namespace: ampere
+  namespace: {{ .Release.Namespace }}
 rules:
   - apiGroups:
       - sparkoperator.k8s.io
@@ -22,11 +22,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: airflow-sparkapplications
-  namespace: ampere
+  namespace: {{ .Release.Namespace }}
 subjects:
   - kind: ServiceAccount
-    name: airflow-worker
-    namespace: ampere
+    name: {{ .Values.serviceAccountName }}
+    namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

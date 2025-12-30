@@ -1,0 +1,4 @@
+apiVersion: v2
+name: airflow-spark-rbac
+description: RBAC for Airflow workers to create SparkApplication resources
+version: 0.1.0

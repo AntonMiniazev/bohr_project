@@ -47,7 +47,7 @@ Services and roles
 - [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) (prometheus-community chart): Prometheus metrics collection with Grafana dashboards.
 - [Spark Operator](https://github.com/kubeflow/spark-operator) (spark-operator chart): runs SparkApplication workloads for ETL and batch processing.
 - [Ivy cache](services/ivy-cache) (custom chart): shared PVC for Spark JAR dependencies, mountable by Spark driver/executor pods.
-- Airflow Spark RBAC (manifest): grants the Airflow worker service account permissions to create SparkApplication CRs.
+- [Airflow Spark RBAC](services/airflow-spark-rbac) (custom chart): grants the Airflow worker service account permissions to create SparkApplication CRs.
 - [Ingress resources](services/ingress) (custom chart): ingress routes, TCP mappings, and local CA certificates for internal TLS.
 - [PostgreSQL](services/postgresql) (custom chart): metadata and operational databases for Airflow and application workloads, exposed through ingress-nginx TCP forwarding with allowlisted networks.
 - [MinIO](services/minio) (custom chart): S3-compatible object storage.
@@ -112,7 +112,7 @@ Files to review
 - [`services/postgresql`](services/postgresql)
 - [`services/minio`](services/minio)
 - [`services/airflow`](services/airflow)
-- [`services/airflow/airflow-spark-rbac.yaml`](services/airflow/airflow-spark-rbac.yaml)
+- [`services/airflow-spark-rbac`](services/airflow-spark-rbac)
 - [`services/ivy-cache`](services/ivy-cache)
 - [`services/keda`](services/keda)
 - [`services/external-secrets`](services/external-secrets)
