@@ -13,6 +13,8 @@ nodes:
 monitoring:
   namespace: monitoring
   node: MONITORING_NODE
+infra:
+  node: INFRA_NODE
 spark:
   node: SPARK_OPERATOR_NODE
   jobNamespaces:

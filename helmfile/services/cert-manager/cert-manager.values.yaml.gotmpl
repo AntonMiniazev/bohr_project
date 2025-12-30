@@ -1,2 +1,21 @@
 crds:
   enabled: true
+
+nodeSelector:
+  kubernetes.io/os: linux
+  kubernetes.io/hostname: {{ .Environment.Values.infra.node }}
+
+webhook:
+  nodeSelector:
+    kubernetes.io/os: linux
+    kubernetes.io/hostname: {{ .Environment.Values.infra.node }}
+
+cainjector:
+  nodeSelector:
+    kubernetes.io/os: linux
+    kubernetes.io/hostname: {{ .Environment.Values.infra.node }}
+
+startupapicheck:
+  nodeSelector:
+    kubernetes.io/os: linux
+    kubernetes.io/hostname: {{ .Environment.Values.infra.node }}

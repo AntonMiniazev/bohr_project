@@ -1,5 +1,8 @@
 watchNamespace: {{ .Environment.Values.global.namespace }}
 
+nodeSelector:
+  kubernetes.io/hostname: {{ .Environment.Values.infra.node }}
+
 extraObjects:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding

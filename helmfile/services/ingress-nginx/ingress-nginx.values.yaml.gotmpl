@@ -4,6 +4,9 @@ controller:
     name: {{ .Environment.Values.ingress.className | quote }}
     enabled: true
     default: true
+  nodeSelector:
+    kubernetes.io/os: linux
+    kubernetes.io/hostname: {{ .Environment.Values.infra.node }}
   service:
     type: NodePort
     nodePorts:
