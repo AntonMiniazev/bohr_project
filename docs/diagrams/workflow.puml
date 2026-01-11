@@ -10,6 +10,9 @@ Person(dev, "Developer", "Operates provisioning and service delivery")
 
 Container_Boundary(provisioning, "Provisioning Pipeline") {
     Component(terraform, "Terraform", "CLI", "Renders templates and creates libvirt VMs")
+    Component(tfMain, "Terraform libvirt main.tf", "IaC", "VM, network, and disk definitions")
+    Component(tfTemplates, "Cloud-Init templates", "Templates", "cloud-init userdata and bootstrap scripts")
+    Component(tfScripts, "Bootstrap scripts", "Scripts", "OS/kubeadm stages and readiness gates")
     Component(cloudinit, "Cloud-Init", "Bootstrap", "Configures networking and OS prerequisites")
     Component(kubeadm, "kubeadm", "Bootstrap", "Initializes control plane and joins workers")
     Component(cilium, "Cilium", "CNI", "Enables pod networking")
@@ -34,6 +37,11 @@ Container_Boundary(services, "Service Delivery") {
 }
 
 Rel(dev, terraform, "Runs provisioning")
+Rel(terraform, tfMain, "Applies")
+Rel(terraform, tfTemplates, "Renders")
+Rel(terraform, tfScripts, "Stages")
+Rel(tfTemplates, cloudinit, "Generates userdata")
+Rel(tfScripts, kubeadm, "Invokes bootstrap")
 Rel(terraform, cloudinit, "Injects userdata")
 Rel(cloudinit, kubeadm, "Installs and configures Kubernetes")
 Rel(kubeadm, cilium, "Applies CNI")

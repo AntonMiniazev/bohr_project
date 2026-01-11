@@ -21,5 +21,5 @@ This repository is a sandbox for provisioning a KVM/libvirt VM fleet and deployi
 3) Deploy platform services, ingress, and secrets with Helmfile.
 
 ## Secrets
-Secrets are stored encrypted with SOPS + Azure Key Vault. Use the credential templates under [`helmfile/services`](helmfile/services) to create new secrets before encrypting them.
+Secrets are stored encrypted with SOPS + Azure Key Vault. Use the credential templates under [`helmfile/services`](helmfile/services) and the Terraform variables template [`terraform/libvirt/terraform_template.tfvars_`](terraform/libvirt/terraform_template.tfvars_) to create new values before encrypting them.
 
