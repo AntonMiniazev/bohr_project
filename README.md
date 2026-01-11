@@ -7,7 +7,7 @@ This repository is a sandbox for provisioning a KVM/libvirt VM fleet and deployi
 - [`custom_images/`](custom_images/) Dockerfiles for custom images published to a registry.
 - [`docs/`](docs/) C4-style architecture docs and diagrams.
   - [System Context diagram](docs/images/Context.svg)
-  - [Internal Cluster Containers diagram](docs/images/Internal Cluster Containers.svg)
+  - [Internal Cluster Containers diagram](docs/images/Internal-Cluster-Containers.svg)
   - [Deployment workflow diagram](docs/images/Workflow.svg)
 
 ## Guides
