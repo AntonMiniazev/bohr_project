@@ -4,7 +4,7 @@ LAYOUT_WITH_LEGEND()
 HIDE_STEREOTYPE()
 
 System_Ext(keyvault, "Azure Key Vault", "KMS", "SOPS and ESO keys")
-System_Ext(registry, "Container Registry", "Registry", "Service images")
+System_Ext(registry, "Container Registry", "Registry", "Service Images")
 
 Person(dev, "Developer", "Operates provisioning and service delivery")
 
