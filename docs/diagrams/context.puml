@@ -5,7 +5,7 @@ HIDE_STEREOTYPE()
 
 Person(dev, "Developer", "Operates infrastructure and services")
 
-System_Ext(git, "Source Control + CI", "Git repository and container registry")
+System_Ext(git, "Source Control + Registry", "Git repository and container registry")
 System_Ext(keyvault, "Azure Key Vault", "KMS for SOPS encryption keys")
 
 System_Boundary(home, "Home Lab") {
