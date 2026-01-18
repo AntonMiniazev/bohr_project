@@ -32,7 +32,19 @@ resource "null_resource" "ampere_pool_path" {
       sudo tee /etc/tmpfiles.d/terraform-libvirt-cloudinit.conf > /dev/null <<'EOF'
 L /tmp/terraform-provider-libvirt-cloudinit - - - - /var/lib/libvirt/images/ampere/cloudinit
 EOF
-      sudo systemd-tmpfiles --create /etc/tmpfiles.d/terraform-libvirt-cloudinit.conf
+    EOT
+  }
+}
+
+
+resource "null_resource" "cloudinit_tmp_cleanup" {
+  triggers = {
+    always = timestamp()
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      sudo rm -rf /tmp/terraform-provider-libvirt-cloudinit
     EOT
   }
 }
@@ -205,6 +217,7 @@ resource "libvirt_volume" "control_plane_disk" {
 }
 
 resource "libvirt_cloudinit_disk" "control_plane_seed" {
+  depends_on = [null_resource.cloudinit_tmp_cleanup]
   name           = "${var.fleet.control_plane.hostname}-seed.iso"
   user_data      = local.cloudinit_cp
   network_config = local.control_plane_network_config
@@ -213,6 +226,25 @@ resource "libvirt_cloudinit_disk" "control_plane_seed" {
     "instance-id"    = var.fleet.control_plane.hostname
     "local-hostname" = var.fleet.control_plane.hostname
   })
+}
+
+
+resource "null_resource" "cloudinit_persist" {
+  triggers = {
+    control_plane = libvirt_cloudinit_disk.control_plane_seed.id
+    workers       = join(",", [for disk in libvirt_cloudinit_disk.worker_seed : disk.id])
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      sudo mkdir -p /var/lib/libvirt/images/ampere/cloudinit
+      if [ -d /tmp/terraform-provider-libvirt-cloudinit ] && [ ! -L /tmp/terraform-provider-libvirt-cloudinit ]; then
+        sudo cp -a /tmp/terraform-provider-libvirt-cloudinit/. /var/lib/libvirt/images/ampere/cloudinit/
+        sudo rm -rf /tmp/terraform-provider-libvirt-cloudinit
+      fi
+      sudo systemd-tmpfiles --create /etc/tmpfiles.d/terraform-libvirt-cloudinit.conf
+    EOT
+  }
 }
 
 resource "libvirt_domain" "control_plane" {
@@ -289,6 +321,7 @@ resource "libvirt_volume" "worker_disk" {
 }
 
 resource "libvirt_cloudinit_disk" "worker_seed" {
+  depends_on = [null_resource.cloudinit_tmp_cleanup]
   for_each = var.fleet.worker_nodes
 
   name           = "${each.key}-seed.iso"
