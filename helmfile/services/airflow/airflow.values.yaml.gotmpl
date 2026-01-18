@@ -77,6 +77,10 @@ workers:
 config:
   celery:
     worker_concurrency: 2
+  logging:
+    log_server_host: "airflow-worker"
+    log_server_port: 8793
+    log_server_ssl: false
 
 triggerer:
   persistence:
