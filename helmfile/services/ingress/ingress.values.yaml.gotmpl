@@ -9,10 +9,11 @@ hosts:
 tls:
   caIssuerName: {{ .Environment.Values.ingress.tls.caIssuerName }}
   caSecretName: {{ .Environment.Values.ingress.tls.caSecretName }}
-  airflowSecret: {{ .Environment.Values.ingress.tls.airflowSecret }}
-  minioSecret: {{ .Environment.Values.ingress.tls.minioSecret }}
-  postgresSecret: {{ .Environment.Values.ingress.tls.postgresSecret }}
-  grafanaSecret: {{ .Environment.Values.ingress.tls.grafanaSecret }}
+  sharedSecret: {{ .Environment.Values.ingress.tls.sharedSecret }}
+  bootstrap:
+    enabled: {{ .Environment.Values.ingress.tls.bootstrap.enabled | default false }}
 tcp:
   postgresService: {{ .Environment.Values.postgresql.host }}
   postgresPort: {{ .Environment.Values.postgresql.port }}
+  minioService: minio
+  minioPort: 9000

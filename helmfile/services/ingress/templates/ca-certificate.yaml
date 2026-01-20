@@ -1,4 +1,4 @@
-{{- if .Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate" }}
+{{- if and (.Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate") (.Values.tls.bootstrap.enabled | default false) }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:

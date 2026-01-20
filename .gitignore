@@ -33,3 +33,4 @@ secret_enc/
 .secret_enc/
 AGENTS.md
 terraform_old.tfvars
+.devcontainer/

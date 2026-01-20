@@ -26,6 +26,6 @@ grafana:
     hosts:
       - {{ .Environment.Values.ingress.hosts.grafana }}
     tls:
-      - secretName: {{ .Environment.Values.ingress.tls.grafanaSecret }}
+      - secretName: {{ .Environment.Values.ingress.tls.sharedSecret }}
         hosts:
           - {{ .Environment.Values.ingress.hosts.grafana }}

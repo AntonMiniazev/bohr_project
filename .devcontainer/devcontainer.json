@@ -18,13 +18,14 @@
         "python.terminal.activateEnvironment": true
       },
       "extensions": [
+        "openai.chatgpt",
         "ms-python.python",
         "ms-azuretools.vscode-docker",
         "ms-vscode.vscode-typescript-next"
       ]
     }
   },
-  "postStartCommand": "echo 'source /workspace/.venv/bin/activate' >> /root/.bashrc",
+  "postStartCommand": "bash -lc \"update-ca-certificates || true; echo 'source /workspace/.venv/bin/activate' >> /root/.bashrc\"",
   "remoteUser": "root",
   "runArgs": [
     "--network",
@@ -33,19 +34,18 @@
     "--add-host=s3.minio.local:192.168.1.29"
   ],
   "containerEnv": {
-    "MINIO_S3_ENDPOINT": "http://s3.minio.local",
-    "MINIO_ACCESS_KEY": "likelol",
-    "MINIO_SECRET_KEY": "7454556qQ",
-    "MINIO_BUCKET_RAW": "ampere-prod-raw",
-    "MINIO_BUCKET_SILVER": "ampere-prod-silver",
-    "SA_PASSWORD": "7454556qQ!",
-    "MSSQL_USER": "sa",
-    "MSSQL_SQLALCHEMY_URL": "mssql+pyodbc://USER:PASS@ampere-k8s-node1,1433/BusinessLogic?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=no&TrustServerCertificate=yes"
+    "SSL_CERT_DIR": "/etc/ssl/certs",
+    "SSL_CERT_FILE": "/etc/ssl/certs/ca-certificates.crt",
+    "REQUESTS_CA_BUNDLE": "/etc/ssl/certs/ca-certificates.crt",
+    "NODE_EXTRA_CA_CERTS": "/etc/ssl/certs/ca-certificates.crt"
   },
   "mounts": [
-    "source=${env:USERPROFILE}/.kube,target=/home/vscode/.kube,type=bind,consistency=cached"
+    "source=${env:USERPROFILE}/.kube,target=/home/vscode/.kube,type=bind,consistency=cached",
+    "source=${env:USERPROFILE}/.cert,target=/usr/local/share/ca-certificates/host,type=bind,consistency=cached",
+    "source=${env:USERPROFILE}/.vscode-server-ampere,target=/root/.vscode-server,type=bind,consistency=cached"
   ],
   "remoteEnv": {
-    "KUBECONFIG": "/home/vscode/.kube/config-ampere-devcontainer"
+    "KUBECONFIG": "/home/vscode/.kube/config-ampere-devcontainer",
+    "OPENAI_API_KEY": "${localEnv:OPENAI_API_KEY}"
   }
 }

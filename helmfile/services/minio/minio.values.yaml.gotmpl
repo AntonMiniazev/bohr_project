@@ -32,7 +32,7 @@ ingress:
   className: {{ .Environment.Values.ingress.className }}
   host: {{ .Environment.Values.ingress.hosts.minio }}
   s3Host: {{ .Environment.Values.minio.s3_endpoint }}
-  tlsSecret: {{ .Environment.Values.ingress.tls.minioSecret }}
+  tlsSecret: {{ .Environment.Values.ingress.tls.sharedSecret }}
 
 server:
   url: {{ .Environment.Values.minio.server_url }}

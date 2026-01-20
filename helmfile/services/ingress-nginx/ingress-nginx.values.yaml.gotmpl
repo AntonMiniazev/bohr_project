@@ -14,8 +14,10 @@ controller:
       https: {{ .Environment.Values.ingress.controller.httpsNodePort }}
       tcp:
         5432: {{ .Environment.Values.ingress.controller.tcpNodePorts.postgres }}
+        9000: {{ .Environment.Values.ingress.controller.tcpNodePorts.minio }}
   extraArgs:
     tcp-services-configmap: "ingress-nginx/tcp-services"
 
 tcp:
   "5432": "{{ .Environment.Values.global.namespace }}/{{ .Environment.Values.postgresql.host }}:{{ .Environment.Values.postgresql.port }}"
+  "9000": "{{ .Environment.Values.global.namespace }}/minio:9000"

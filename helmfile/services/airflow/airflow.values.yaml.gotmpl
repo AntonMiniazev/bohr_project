@@ -44,7 +44,7 @@ ingress:
       - name: {{ .Environment.Values.ingress.hosts.airflow | quote }}
         tls:
           enabled: true
-          secretName: {{ .Environment.Values.ingress.tls.airflowSecret | quote }}
+          secretName: {{ .Environment.Values.ingress.tls.sharedSecret | quote }}
 
 nodeSelector:
   kubernetes.io/hostname: {{ .Environment.Values.airflow.node }}
@@ -81,6 +81,11 @@ config:
     log_server_host: "airflow-worker"
     log_server_port: 8793
     log_server_ssl: false
+  database:
+    sql_alchemy_pool_size: 10
+    sql_alchemy_max_overflow: 30
+    sql_alchemy_pool_recycle: 1800
+    sql_alchemy_pool_pre_ping: true
 
 triggerer:
   persistence:

@@ -2,12 +2,15 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: minio-cert
+  name: ampere-ingress-cert
   namespace: {{ .Values.namespace }}
 spec:
-  secretName: {{ .Values.tls.minioSecret }}
+  secretName: {{ .Values.tls.sharedSecret }}
   dnsNames:
+    - {{ .Values.hosts.airflow | quote }}
     - {{ .Values.hosts.minio | quote }}
+    - {{ .Values.hosts.grafana | quote }}
+    - {{ .Values.hosts.postgres | quote }}
 {{- if .Values.hosts.minioS3 }}
     - {{ .Values.hosts.minioS3 | quote }}
 {{- end }}

@@ -24,7 +24,7 @@ resources:
 
 tls:
   enabled: {{ .Environment.Values.postgresql.tls.enabled | default false }}
-  secretName: {{ .Environment.Values.ingress.tls.postgresSecret }}
+  secretName: {{ .Environment.Values.ingress.tls.sharedSecret }}
 
 {{- with .Environment.Values.postgresql.access.allowedCidrs }}
 access:

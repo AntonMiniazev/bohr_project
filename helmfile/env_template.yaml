@@ -51,7 +51,7 @@ minio:
   node: MINIO_NODE
   release: RELEASE.2025-09-07T16-13-09Z-cpuv1
   s3_endpoint: "s3.minio.local"
-  server_url: "http://minio.NAMESPACE.svc.cluster.local:9000"
+  server_url: "https://s3.minio.local"
   repo: quay.io/minio/minio
 
 postgresql:
@@ -85,6 +85,7 @@ ingress:
     httpsNodePort: 30443
     tcpNodePorts:
       postgres: 32432
+      minio: 30090
   hosts:
     airflow: airflow.local
     minio: minio.local
@@ -93,7 +94,6 @@ ingress:
   tls:
     caIssuerName: local-ca
     caSecretName: local-ca
-    airflowSecret: airflow-tls
-    minioSecret: minio-tls
-    postgresSecret: postgres-tls
-    grafanaSecret: grafana-tls
+    sharedSecret: ampere-tls
+    bootstrap:
+      enabled: false

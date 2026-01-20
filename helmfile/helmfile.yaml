@@ -128,6 +128,12 @@ releases:
       tier: infra
     values:
       - services/ingress/ingress.values.yaml.gotmpl
+    hooks:
+      - events: ["preapply"]
+        command: "bash"
+        args:
+          - "-c"
+          - "sops -d services/ingress/ca.secret.yaml | kubectl apply -f -"
     needs:
       - cert-manager/cert-manager
       - ingress-nginx/ingress-nginx
