@@ -44,7 +44,10 @@ resource "null_resource" "cloudinit_tmp_cleanup" {
 
   provisioner "local-exec" {
     command = <<EOT
-      sudo rm -rf /tmp/terraform-provider-libvirt-cloudinit
+      if [ -d /tmp/terraform-provider-libvirt-cloudinit ] && [ ! -L /tmp/terraform-provider-libvirt-cloudinit ]; then
+        sudo rm -rf /tmp/terraform-provider-libvirt-cloudinit
+      fi
+      sudo systemd-tmpfiles --create /etc/tmpfiles.d/terraform-libvirt-cloudinit.conf
     EOT
   }
 }

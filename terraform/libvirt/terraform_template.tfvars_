@@ -98,14 +98,14 @@ fleet = {
       mac     = "02:28:A7:6C:33:8D"
     }
     "WORKER_NODE_3" = {
-      memory  = 10240
-      vcpu    = 4
+      memory  = 6144
+      vcpu    = 2
       disk_gb = 40
       ip      = "192.168.11.103"
       mac     = "02:34:F9:DA:44:E2"
     }
     "WORKER_NODE_4" = {
-      memory  = 6144
+      memory  = 8192
       vcpu    = 4
       disk_gb = 50
       ip      = "192.168.11.104"
