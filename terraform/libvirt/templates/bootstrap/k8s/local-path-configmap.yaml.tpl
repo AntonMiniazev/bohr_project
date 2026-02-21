@@ -8,7 +8,19 @@ metadata:
 data:
   config.json: |
     {
-      "sharedFileSystemPath": "/opt/local-path-provisioner/shared"
+      "storageClassConfigs": {
+        "local-path": {
+          "nodePathMap": [
+            {
+              "node": "DEFAULT_PATH_FOR_NON_LISTED_NODES",
+              "paths": ["/opt/local-path-provisioner"]
+            }
+          ]
+        },
+        "local-path-shared": {
+          "sharedFileSystemPath": "/opt/local-path-provisioner/shared"
+        }
+      }
     }
   setup: |-
     #!/bin/sh

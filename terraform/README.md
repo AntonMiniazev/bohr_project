@@ -77,7 +77,7 @@ Components installed on worker nodes
 Version sources
 - Package versions are defined in `terraform/libvirt/terraform.tfvars` under `packages.*`.
 
-Service exposure (ingress routes and TCP forwarding) is configured later via Helmfile. See [`helmfile/README.md`](../helmfile/README.md).
+Service exposure (ingress routes and TCP forwarding) is configured later via Helmfile. Current internal ingress endpoints include Airflow, MinIO, Spark Connect, and Unity Catalog (`ucatalog.local`). See [`helmfile/README.md`](../helmfile/README.md).
 
 ## Steps of deployment
 

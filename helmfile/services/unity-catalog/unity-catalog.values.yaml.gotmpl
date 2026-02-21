@@ -1,0 +1,72 @@
+{{- $pgHost := .Environment.Values.unityCatalog.database.host -}}
+storage:
+  modelStorageRoot: {{ .Environment.Values.unityCatalog.storage.modelRoot | quote }}
+  credentials:
+    s3:
+      - bucketPath: {{ .Environment.Values.unityCatalog.storage.bucketPath | quote }}
+        region: {{ .Environment.Values.unityCatalog.storage.region | quote }}
+        awsRoleArn: ""
+        credentialsSecretName: {{ .Environment.Values.unityCatalog.storage.credentialsSecretName | quote }}
+
+auth:
+  enabled: false
+
+server:
+  enabled: {{ .Environment.Values.unityCatalog.enabled | default true }}
+  logLevel: info
+  db:
+    type: postgresql
+    postgresqlConfig:
+      host: {{ if contains "." $pgHost }}{{ $pgHost }}{{ else }}{{ printf "%s.%s.svc.cluster.local" $pgHost .Environment.Values.global.namespace }}{{ end }}
+      port: {{ .Environment.Values.unityCatalog.database.port }}
+      dbName: {{ .Environment.Values.unityCatalog.database.name | quote }}
+      username: {{ .Environment.Values.unityCatalog.database.user | quote }}
+      passwordSecretName: {{ .Environment.Values.unityCatalog.database.passwordSecretName | quote }}
+      passwordSecretKey: {{ .Environment.Values.unityCatalog.database.passwordSecretKey | quote }}
+      ssl:
+        enabled: {{ .Environment.Values.unityCatalog.database.ssl.enabled | default false }}
+        mode: {{ .Environment.Values.unityCatalog.database.ssl.mode | quote }}
+  deployment:
+    replicaCount: 1
+    image:
+      repository: {{ .Environment.Values.unityCatalog.image.server.repository }}
+      tag: {{ .Environment.Values.unityCatalog.image.server.tag }}
+      pullPolicy: {{ .Environment.Values.unityCatalog.image.server.pullPolicy }}
+    nodeSelector:
+      kubernetes.io/hostname: {{ .Environment.Values.unityCatalog.node }}
+    enableLivenessProbe: true
+    enableReadinessProbe: true
+    enableStartupProbe: true
+    resources:
+      requests:
+        cpu: {{ .Environment.Values.unityCatalog.resources.server.requests.cpu | quote }}
+        memory: {{ .Environment.Values.unityCatalog.resources.server.requests.memory | quote }}
+      limits:
+        cpu: {{ .Environment.Values.unityCatalog.resources.server.limits.cpu | quote }}
+        memory: {{ .Environment.Values.unityCatalog.resources.server.limits.memory | quote }}
+
+ui:
+  enabled: true
+  deployment:
+    image:
+      repository: {{ .Environment.Values.unityCatalog.image.ui.repository }}
+      tag: {{ .Environment.Values.unityCatalog.image.ui.tag }}
+      pullPolicy: {{ .Environment.Values.unityCatalog.image.ui.pullPolicy }}
+    nodeSelector:
+      kubernetes.io/hostname: {{ .Environment.Values.unityCatalog.node }}
+    enableLivenessProbe: true
+    enableReadinessProbe: true
+    enableStartupProbe: true
+    resources:
+      requests:
+        cpu: {{ .Environment.Values.unityCatalog.resources.ui.requests.cpu | quote }}
+        memory: {{ .Environment.Values.unityCatalog.resources.ui.requests.memory | quote }}
+      limits:
+        cpu: {{ .Environment.Values.unityCatalog.resources.ui.limits.cpu | quote }}
+        memory: {{ .Environment.Values.unityCatalog.resources.ui.limits.memory | quote }}
+
+ingress:
+  enabled: {{ .Environment.Values.unityCatalog.ingress.enabled | default true }}
+  host: {{ .Environment.Values.unityCatalog.ingress.host | quote }}
+  ingressClassName: {{ .Environment.Values.unityCatalog.ingress.className | quote }}
+  tlsSecretName: {{ .Environment.Values.unityCatalog.ingress.tlsSecret | quote }}

@@ -1,0 +1,27 @@
+{{- if and .Values.sparkConnect.enabled .Values.sparkConnect.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spark-connect
+  labels:
+    app: spark-connect
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+spec:
+  ingressClassName: {{ .Values.sparkConnect.ingress.className }}
+  tls:
+    - hosts:
+        - {{ .Values.sparkConnect.ingress.host | quote }}
+      secretName: {{ .Values.sparkConnect.ingress.tlsSecret }}
+  rules:
+    - host: {{ .Values.sparkConnect.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spark-connect
+                port:
+                  number: {{ .Values.sparkConnect.service.port }}
+{{- end }}

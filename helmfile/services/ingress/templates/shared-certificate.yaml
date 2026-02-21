@@ -11,6 +11,7 @@ spec:
     - {{ .Values.hosts.minio | quote }}
     - {{ .Values.hosts.grafana | quote }}
     - {{ .Values.hosts.postgres | quote }}
+    - {{ .Values.hosts.sparkconnect | quote }}
 {{- if .Values.hosts.minioS3 }}
     - {{ .Values.hosts.minioS3 | quote }}
 {{- end }}

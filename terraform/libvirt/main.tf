@@ -164,6 +164,7 @@ locals {
 
 
   local_path_configmap_yaml = indent(6, file("${path.module}/templates/bootstrap/k8s/local-path-configmap.yaml.tpl"))
+  local_path_shared_storageclass_yaml = indent(6, file("${path.module}/templates/bootstrap/k8s/local-path-shared-storageclass.yaml.tpl"))
   kubeadm_init_indented = indent(6, local.kubeadm_init_raw)
   bootstrap_init_script_indented = indent(6, local.bootstrap_init_script)
   bootstrap_master_script_indented = indent(6, local.bootstrap_master_script)
@@ -198,6 +199,7 @@ locals {
       bootstrap_master_script_indented        = local.bootstrap_master_script_indented
       bootstrap_addons_script_indented        = local.bootstrap_addons_script_indented
       local_path_configmap_indented           = local.local_path_configmap_yaml
+      local_path_shared_storageclass_indented = local.local_path_shared_storageclass_yaml
     }
   )
 }

@@ -95,7 +95,8 @@
       done
   
       kubectl apply --validate=false -f /opt/bootstrap/local-path-configmap.yaml
-  
+      kubectl apply --validate=false -f /opt/bootstrap/local-path-shared-storageclass.yaml
+
       kubectl patch storageclass local-path -p '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}' || echo "[DIAG - WARN] StorageClass patch failed"
   
       # -------------------------------------------------------------------

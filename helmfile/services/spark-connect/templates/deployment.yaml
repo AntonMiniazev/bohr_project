@@ -1,0 +1,72 @@
+{{- if .Values.sparkConnect.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-connect
+  labels:
+    app: spark-connect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-connect
+  template:
+    metadata:
+      labels:
+        app: spark-connect
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: {{ .Values.sparkConnect.node }}
+      containers:
+        - name: spark-connect
+          image: "{{ .Values.sparkConnect.image.repository }}:{{ .Values.sparkConnect.image.tag }}"
+          imagePullPolicy: {{ .Values.sparkConnect.image.pullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.sparkConnect.service.port }}
+          env:
+            - name: SPARK_NO_DAEMONIZE
+              value: "true"
+          envFrom:
+            - secretRef:
+                name: {{ .Values.sparkConnect.minio.secretName }}
+          command:
+            - bash
+            - -c
+            - |
+              set -euo pipefail
+              mkdir -p /opt/spark/conf
+              cat > /opt/spark/conf/spark-defaults.conf <<EOF
+              spark.master                       local[*]
+              spark.app.name                     spark-connect
+              spark.connect.grpc.binding.port    {{ .Values.sparkConnect.service.port }}
+              spark.connect.grpc.binding.address 0.0.0.0
+              spark.ui.enabled                   false
+              spark.sql.extensions              io.delta.sql.DeltaSparkSessionExtension
+              spark.sql.catalog.spark_catalog   org.apache.spark.sql.delta.catalog.DeltaCatalog
+              spark.hadoop.fs.s3a.endpoint       {{ .Values.sparkConnect.minio.endpoint }}
+              spark.hadoop.fs.s3a.path.style.access {{ .Values.sparkConnect.minio.pathStyle }}
+              spark.hadoop.fs.s3a.connection.ssl.enabled {{ .Values.sparkConnect.minio.ssl }}
+              spark.hadoop.fs.s3a.aws.credentials.provider org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
+              spark.hadoop.fs.s3a.access.key     ${MINIO_ACCESS_KEY}
+              spark.hadoop.fs.s3a.secret.key     ${MINIO_SECRET_KEY}
+              spark.hadoop.fs.s3a.endpoint.region {{ .Values.sparkConnect.minio.region }}
+              spark.hadoop.fs.s3a.impl           org.apache.hadoop.fs.s3a.S3AFileSystem
+              spark.jars.packages                org.apache.spark:spark-connect_2.13:{{ .Values.sparkConnect.image.tag }},io.delta:delta-spark_2.13:4.0.1,io.delta:delta-storage:4.0.1,org.apache.hadoop:hadoop-aws:3.4.1
+              {{ if .Values.sparkConnect.ivy.enabled }}
+              spark.jars.ivy                     {{ .Values.sparkConnect.ivy.mountPath }}
+              {{ end }}
+              EOF
+              exec /opt/spark/sbin/start-connect-server.sh
+          {{- if .Values.sparkConnect.ivy.enabled }}
+          volumeMounts:
+            - name: ivy-cache
+              mountPath: {{ .Values.sparkConnect.ivy.mountPath }}
+          {{- end }}
+      {{- if .Values.sparkConnect.ivy.enabled }}
+      volumes:
+        - name: ivy-cache
+          persistentVolumeClaim:
+            claimName: ivy-cache
+      {{- end }}
+{{- end }}

@@ -1,0 +1,23 @@
+sparkConnect:
+  enabled: {{ .Environment.Values.sparkConnect.enabled | default true }}
+  node: {{ .Environment.Values.sparkConnect.node }}
+  image:
+    repository: {{ .Environment.Values.sparkConnect.image.repository }}
+    tag: {{ .Environment.Values.sparkConnect.image.tag }}
+    pullPolicy: {{ .Environment.Values.sparkConnect.image.pullPolicy }}
+  service:
+    port: {{ .Environment.Values.sparkConnect.service.port }}
+  ingress:
+    enabled: {{ .Environment.Values.sparkConnect.ingress.enabled | default true }}
+    className: {{ .Environment.Values.sparkConnect.ingress.className }}
+    host: {{ .Environment.Values.sparkConnect.ingress.host }}
+    tlsSecret: {{ .Environment.Values.sparkConnect.ingress.tlsSecret }}
+  minio:
+    endpoint: {{ .Environment.Values.sparkConnect.minio.endpoint | quote }}
+    region: {{ .Environment.Values.sparkConnect.minio.region | quote }}
+    pathStyle: {{ .Environment.Values.sparkConnect.minio.pathStyle }}
+    ssl: {{ .Environment.Values.sparkConnect.minio.ssl }}
+    secretName: {{ .Environment.Values.sparkConnect.minio.secretName }}
+  ivy:
+    enabled: {{ .Environment.Values.sparkConnect.ivy.enabled | default true }}
+    mountPath: {{ .Environment.Values.sparkConnect.ivy.mountPath }}

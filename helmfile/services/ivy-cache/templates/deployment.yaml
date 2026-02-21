@@ -15,8 +15,10 @@ spec:
       labels:
         app: ivy-cache-loader
     spec:
+      {{- if .Values.ivyCache.node }}
       nodeSelector:
         kubernetes.io/hostname: {{ .Values.ivyCache.node }}
+      {{- end }}
       containers:
         - name: loader
           image: {{ .Values.ivyCache.loader.image }}

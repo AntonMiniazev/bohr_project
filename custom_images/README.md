@@ -1,6 +1,6 @@
 # Custom Images
 
-This folder contains Dockerfiles and build context for custom images used by the platform (for example Airflow-related images).
+This folder contains Dockerfiles and build context for custom images used by the platform (for example Airflow-related images used by Helmfile releases).
 
 Typical workflow:
 1) Edit the Dockerfile under the relevant subfolder.

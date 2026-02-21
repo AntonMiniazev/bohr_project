@@ -99,6 +99,35 @@ releases:
     values:
       - services/spark-operator/spark-operator.values.yaml.gotmpl
 
+  - name: spark-connect
+    chart: ./services/spark-connect
+    namespace: "{{ .Environment.Values.global.namespace }}"
+    createNamespace: true
+    labels:
+      app: spark-connect
+      tier: data-processing
+    values:
+      - services/spark-connect/spark-connect.values.yaml.gotmpl
+    needs:
+      - "{{ .Environment.Values.global.namespace }}/ivy-cache"
+      - "{{ .Environment.Values.global.namespace }}/minio"
+      - "{{ .Environment.Values.global.namespace }}/ingress-resources"
+      - ingress-nginx/ingress-nginx
+
+  - name: unity-catalog
+    chart: ./services/unity-catalog
+    namespace: "{{ .Environment.Values.unityCatalog.namespace }}"
+    createNamespace: true
+    labels:
+      app: unity-catalog
+      tier: governance
+    values:
+      - services/unity-catalog/unity-catalog.values.yaml.gotmpl
+    needs:
+      - "ampere/postgresql"
+      - "ampere/minio"
+      - ingress-nginx/ingress-nginx
+
   - name: airflow-spark-rbac
     chart: ./services/airflow-spark-rbac
     namespace: "{{ .Environment.Values.global.namespace }}"

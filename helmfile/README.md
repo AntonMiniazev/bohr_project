@@ -1,6 +1,6 @@
 # Helmfile: Cluster Services Deployment
 
-This Helmfile configuration deploys platform services into the Kubernetes cluster after the control plane and workers are ready. It installs cert-manager, ingress-nginx, External Secrets Operator, KEDA, Spark Operator, monitoring, PostgreSQL, MinIO, and Airflow, with secrets managed by SOPS and Azure Key Vault.
+This Helmfile configuration deploys platform services into the Kubernetes cluster after the control plane and workers are ready. It installs cert-manager, ingress-nginx, External Secrets Operator, KEDA, Spark Operator, monitoring, PostgreSQL, MinIO, Airflow, Spark Connect, and Unity Catalog OSS, with secrets managed by SOPS and Azure Key Vault.
 
 Guide
 - [Helmfile: Cluster Services Deployment](#helmfile-cluster-services-deployment)
@@ -38,6 +38,7 @@ Namespaces
 - `monitoring`: Prometheus and Grafana monitoring stack.
 - `spark-operator`: Spark Operator control plane.
 - `ampere`: application workloads (PostgreSQL, MinIO, Airflow) and ingress resources.
+- `unity-catalog`: Unity Catalog server and UI.
 
 Services and roles
 - [cert-manager](https://cert-manager.io/) (jetstack chart): issues TLS certificates for ingress hosts.
@@ -53,6 +54,8 @@ Services and roles
 - [MinIO](services/minio) (custom chart): S3-compatible object storage.
 - [Airflow](https://airflow.apache.org/docs/helm-chart/1.18.0/) (apache-airflow chart): orchestration for pipelines and DAG execution.
 - [KEDA](https://github.com/kedacore/charts) (kedacore chart): event-driven autoscaling for Airflow workers.
+- [Spark Connect](services/spark-connect) (custom chart): Spark Connect endpoint for remote notebooks/clients.
+- [Unity Catalog OSS](services/unity-catalog) (custom chart): metadata governance API and web UI.
 
 Versions (current defaults)
 - cert-manager chart `1.16.3`: [`helmfile.yaml`](helmfile.yaml)
@@ -116,3 +119,5 @@ Files to review
 - [`services/ivy-cache`](services/ivy-cache)
 - [`services/keda`](services/keda)
 - [`services/external-secrets`](services/external-secrets)
+- [`services/spark-connect`](services/spark-connect)
+- [`services/unity-catalog`](services/unity-catalog)

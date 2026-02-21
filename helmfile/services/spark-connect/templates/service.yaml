@@ -1,0 +1,16 @@
+{{- if .Values.sparkConnect.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-connect
+  labels:
+    app: spark-connect
+spec:
+  type: ClusterIP
+  selector:
+    app: spark-connect
+  ports:
+    - name: grpc
+      port: {{ .Values.sparkConnect.service.port }}
+      targetPort: grpc
+{{- end }}

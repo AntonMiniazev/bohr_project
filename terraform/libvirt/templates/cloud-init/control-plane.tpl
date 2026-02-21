@@ -114,6 +114,11 @@ ${bootstrap_master_script_indented}
     content: |
 ${local_path_configmap_indented}
 
+  - path: /opt/bootstrap/local-path-shared-storageclass.yaml
+    permissions: '0644'
+    content: |
+${local_path_shared_storageclass_indented}
+
   - path: /usr/local/bin/bootstrap-addons.sh
     permissions: '0755'
     content: |

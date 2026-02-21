@@ -117,7 +117,7 @@ runcmd:
   - bash -c 'for i in {1..20}; do ip route | grep -q "^default" && exit 0; echo "[INFO] Waiting for default route..."; sleep 3; done; echo "[WARN] Default route not found, continuing"; exit 0'
   - bash -c 'for i in {1..5}; do apt-get update && exit 0; echo "[WARN] apt-get update failed, retry $i/5..."; sleep 10; done; echo "[ERROR] apt-get update failed after retries, continuing anyway"; exit 0'  
   - bash -c 'DEBIAN_FRONTEND=noninteractive apt-get -y upgrade || echo "[WARN] apt upgrade failed (non-fatal)"'
-  - apt-get install -y ca-certificates curl gnupg software-properties-common conntrack
+  - apt-get install -y ca-certificates curl gnupg software-properties-common conntrack nfs-common
   - sed -i '/ swap / s/^/#/' /etc/fstab
   - swapoff -a
   - modprobe br_netfilter

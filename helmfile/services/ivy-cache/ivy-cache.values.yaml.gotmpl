@@ -14,3 +14,27 @@ ivyCache:
     ttlSecondsAfterFinished: {{ .Environment.Values.ivyCache.bootstrap.ttlSecondsAfterFinished }}
     urls:
 {{ toYaml .Environment.Values.ivyCache.bootstrap.urls | nindent 6 }}
+
+nfsServer:
+  enabled: {{ .Environment.Values.ivyCacheNfs.enabled | default true }}
+
+nfs-server-provisioner:
+  persistence:
+    enabled: true
+    storageClass: {{ .Environment.Values.ivyCacheNfs.backingStorageClass }}
+    accessMode: ReadWriteOnce
+    size: {{ .Environment.Values.ivyCacheNfs.size }}
+  storageClass:
+    create: true
+    name: {{ .Environment.Values.ivyCacheNfs.storageClass }}
+    defaultClass: false
+    allowVolumeExpansion: true
+    reclaimPolicy: Delete
+    mountOptions:
+      - vers=3
+      - retrans=2
+      - timeo=30
+  {{- if .Environment.Values.ivyCacheNfs.node }}
+  nodeSelector:
+    kubernetes.io/hostname: {{ .Environment.Values.ivyCacheNfs.node }}
+  {{- end }}

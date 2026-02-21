@@ -5,6 +5,7 @@ hosts:
   minio: {{ .Environment.Values.ingress.hosts.minio }}
   postgres: {{ .Environment.Values.ingress.hosts.postgres }}
   grafana: {{ .Environment.Values.ingress.hosts.grafana }}
+  sparkconnect: {{ .Environment.Values.ingress.hosts.sparkconnect }}
   minioS3: {{ .Environment.Values.minio.s3_endpoint }}
 tls:
   caIssuerName: {{ .Environment.Values.ingress.tls.caIssuerName }}

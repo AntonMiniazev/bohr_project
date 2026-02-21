@@ -39,7 +39,7 @@
       echo "[DIAG] Upgrading packages (non-fatal)"
       DEBIAN_FRONTEND=noninteractive apt-get -y upgrade || true
   
-      apt-get install -y ca-certificates curl gnupg software-properties-common
+      apt-get install -y ca-certificates curl gnupg software-properties-common nfs-common
   
       # --- Kernel / sysctl ---
       echo "[DIAG] Configuring kernel parameters"

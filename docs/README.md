@@ -1,7 +1,7 @@
 # Architecture Documentation
 
 ## Overview
-C4-like documentation for a home-lab Kubernetes deployment that supports data engineering work. The diagrams explain how the VM fleet is provisioned, how the cluster is bootstrapped, and how core services are deployed and interact inside the platform.
+C4-like documentation for a home-lab Kubernetes deployment that supports data engineering work. The diagrams explain how the VM fleet is provisioned, how the cluster is bootstrapped, and how core services (including Spark Connect and Unity Catalog OSS) are deployed and interact inside the platform.
 
 
 ## Diagram inventory

@@ -2,3 +2,9 @@ apiVersion: v2
 name: ivy-cache
 description: PVC + loader pod for shared Spark Ivy cache
 version: 0.1.0
+type: application
+dependencies:
+  - name: nfs-server-provisioner
+    version: 1.8.0
+    repository: https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner
+    condition: nfsServer.enabled

@@ -18,8 +18,10 @@ spec:
       labels:
         app: ivy-cache-bootstrap
     spec:
+      {{- if .Values.ivyCache.node }}
       nodeSelector:
         kubernetes.io/hostname: {{ .Values.ivyCache.node }}
+      {{- end }}
       restartPolicy: OnFailure
       containers:
         - name: bootstrap

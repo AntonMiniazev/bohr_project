@@ -1,0 +1,5 @@
+apiVersion: v2
+name: spark-connect
+description: Spark Connect server (gRPC) for interactive clients
+version: 0.1.0
+type: application
