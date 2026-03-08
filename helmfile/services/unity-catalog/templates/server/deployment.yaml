@@ -41,10 +41,16 @@ spec:
             - /bin/sh
             - -c
             - |-
-              apk add --no-cache envsubst openssl curl
+              set -eu
+              apk add --no-cache gettext-envsubst openssl curl
+              command -v envsubst >/dev/null
               envsubst < /home/unitycatalog/etc/confTemplates/server.properties.template > /home/unitycatalog/etc/conf/server.properties
               envsubst < /home/unitycatalog/etc/confTemplates/server.log4j2.properties.template > /home/unitycatalog/etc/conf/server.log4j2.properties
               envsubst < /home/unitycatalog/etc/confTemplates/hibernate.properties.template > /home/unitycatalog/etc/conf/hibernate.properties
+              test -s /home/unitycatalog/etc/conf/server.properties
+              test -s /home/unitycatalog/etc/conf/server.log4j2.properties
+              test -s /home/unitycatalog/etc/conf/hibernate.properties
+              grep -q '^hibernate.connection.url=' /home/unitycatalog/etc/conf/hibernate.properties
 
               echo "Generating DER format keys (private_key.der and public_key.der) if they do not exist..."
               if [ -f /home/unitycatalog/etc/conf/private_key.der ] && [ -f /home/unitycatalog/etc/conf/public_key.der ]; then

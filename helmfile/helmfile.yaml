@@ -24,6 +24,8 @@ repositories:
     url: https://kubernetes.github.io/ingress-nginx
   - name: jetstack
     url: https://charts.jetstack.io
+  - name: nfs-ganesha
+    url: https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner
 
 releases:
   - name: cert-manager
@@ -123,6 +125,12 @@ releases:
       tier: governance
     values:
       - services/unity-catalog/unity-catalog.values.yaml.gotmpl
+    hooks:
+      - events: ["preapply"]
+        command: "bash"
+        args:
+          - "-c"
+          - "sops -d services/unity-catalog/unity-catalog.credentials.yaml | kubectl apply -n {{ .Environment.Values.unityCatalog.namespace }} -f -"
     needs:
       - "ampere/postgresql"
       - "ampere/minio"

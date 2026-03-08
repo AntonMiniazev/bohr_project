@@ -9,5 +9,8 @@ dependencies = [
     "fastapi==0.110.1",
     "uvicorn[standard]==0.29.0",
     "sqlalchemy==2.0.32",
-    "python-dotenv==1.0.1"
+    "python-dotenv==1.0.1",
+    "pyarrow>=23.0.1",
+    "deltalake>=1.4.2",
+    "requests>=2.32.5",
 ]

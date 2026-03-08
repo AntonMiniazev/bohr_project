@@ -1,12 +1,17 @@
 {{- $pgHost := .Environment.Values.unityCatalog.database.host -}}
+{{- $root := . -}}
+{{- $bucketPaths := .Environment.Values.unityCatalog.storage.bucketPaths | default (list .Environment.Values.unityCatalog.storage.modelRoot) -}}
 storage:
   modelStorageRoot: {{ .Environment.Values.unityCatalog.storage.modelRoot | quote }}
+  sessionToken: {{ .Environment.Values.unityCatalog.storage.sessionToken | default "local-dev-token" | quote }}
   credentials:
     s3:
-      - bucketPath: {{ .Environment.Values.unityCatalog.storage.bucketPath | quote }}
-        region: {{ .Environment.Values.unityCatalog.storage.region | quote }}
+{{- range $bucketPath := $bucketPaths }}
+      - bucketPath: {{ $bucketPath | quote }}
+        region: {{ $root.Environment.Values.unityCatalog.storage.region | quote }}
         awsRoleArn: ""
-        credentialsSecretName: {{ .Environment.Values.unityCatalog.storage.credentialsSecretName | quote }}
+        credentialsSecretName: {{ $root.Environment.Values.unityCatalog.storage.credentialsSecretName | quote }}
+{{- end }}
 
 auth:
   enabled: false
@@ -16,6 +21,7 @@ server:
   logLevel: info
   db:
     type: postgresql
+    hbm2ddlAuto: {{ .Environment.Values.unityCatalog.database.hbm2ddlAuto | default "update" | quote }}
     postgresqlConfig:
       host: {{ if contains "." $pgHost }}{{ $pgHost }}{{ else }}{{ printf "%s.%s.svc.cluster.local" $pgHost .Environment.Values.global.namespace }}{{ end }}
       port: {{ .Environment.Values.unityCatalog.database.port }}

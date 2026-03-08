@@ -66,6 +66,7 @@ unityCatalog:
     port: 5432
     name: unity_catalog
     user: UNITY_CATALOG_DB_USER
+    hbm2ddlAuto: update
     passwordSecretName: uc-postgres
     passwordSecretKey: password
     ssl:
@@ -73,7 +74,10 @@ unityCatalog:
       mode: verify-full
   storage:
     modelRoot: s3://ampere-bronze
-    bucketPath: s3://ampere-bronze
+    sessionToken: local-dev-token
+    bucketPaths:
+      - s3://ampere-bronze
+      - s3://ampere-raw
     region: us-east-1
     credentialsSecretName: uc-minio
   resources:
@@ -107,6 +111,7 @@ ivyCache:
     ttlSecondsAfterFinished: 600
     urls:
       - JAR_URL
+      - UNITYCATALOG_SPARK_JAR_URL
 
 ivyCacheNfs:
   enabled: true

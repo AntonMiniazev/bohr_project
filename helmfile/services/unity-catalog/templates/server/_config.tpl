@@ -20,8 +20,9 @@ storage-root.models={{ .Values.storage.modelStorageRoot }}
 s3.bucketPath.{{ $index }}={{ $config.bucketPath }}
 s3.region.{{ $index }}={{ $config.region }}
 s3.awsRoleArn.{{ $index }}={{ $config.awsRoleArn }}
-s3.accessKey.{{ $index }}=${S3_ACCESS_KEY_{{ $index }}}
-s3.secretKey.{{ $index }}=${S3_SECRET_KEY_{{ $index }}}
+s3.accessKey.{{ $index }}=${S3_ACCESS_KEY_0}
+s3.secretKey.{{ $index }}=${S3_SECRET_KEY_0}
+s3.sessionToken.{{ $index }}={{ $.Values.storage.sessionToken }}
 {{- end }}
 
 {{- range $index, $config := .Values.storage.credentials.adls }}
@@ -84,7 +85,7 @@ hibernate.connection.password=${DB_PASSWORD}
 {{ fail "Unsupported database type. Supported types are: file, postgresql." }}
 {{- end }}
 
-hibernate.hbm2ddl.auto=update
+hibernate.hbm2ddl.auto={{ .Values.server.db.hbm2ddlAuto | default "update" }}
 hibernate.show_sql=false
 hibernate.archive.autodetection=class
 hibernate.use_sql_comments=true
