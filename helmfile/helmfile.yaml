@@ -130,7 +130,22 @@ releases:
         command: "bash"
         args:
           - "-c"
-          - "sops -d services/unity-catalog/unity-catalog.credentials.yaml | kubectl apply -n {{ .Environment.Values.unityCatalog.namespace }} -f -"
+          - |
+            set -euo pipefail
+            sops -d services/unity-catalog/unity-catalog.credentials.yaml | kubectl apply -n {{ .Environment.Values.unityCatalog.namespace }} -f -
+            ACCESS_KEY="$(kubectl -n {{ .Environment.Values.global.namespace }} get secret {{ .Environment.Values.sparkConnect.minio.secretName }} -o jsonpath='{.data.MINIO_ACCESS_KEY}')"
+            SECRET_KEY="$(kubectl -n {{ .Environment.Values.global.namespace }} get secret {{ .Environment.Values.sparkConnect.minio.secretName }} -o jsonpath='{.data.MINIO_SECRET_KEY}')"
+            cat <<EOF | kubectl apply -f -
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: {{ .Environment.Values.unityCatalog.storage.credentialsSecretName }}
+              namespace: {{ .Environment.Values.unityCatalog.namespace }}
+            type: Opaque
+            data:
+              accessKey: ${ACCESS_KEY}
+              secretKey: ${SECRET_KEY}
+            EOF
     needs:
       - "ampere/postgresql"
       - "ampere/minio"

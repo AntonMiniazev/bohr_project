@@ -112,6 +112,7 @@ ivyCache:
     urls:
       - JAR_URL
       - UNITYCATALOG_SPARK_JAR_URL
+      - UNITYCATALOG_CLIENT_JAR_URL
 
 ivyCacheNfs:
   enabled: true
