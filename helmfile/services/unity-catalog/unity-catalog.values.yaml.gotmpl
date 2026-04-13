@@ -52,7 +52,7 @@ server:
         memory: {{ .Environment.Values.unityCatalog.resources.server.limits.memory | quote }}
 
 ui:
-  enabled: true
+  enabled: false
   deployment:
     image:
       repository: {{ .Environment.Values.unityCatalog.image.ui.repository }}
