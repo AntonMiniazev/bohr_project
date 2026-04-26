@@ -21,3 +21,10 @@ sparkConnect:
   ivy:
     enabled: {{ .Environment.Values.sparkConnect.ivy.enabled | default true }}
     mountPath: {{ .Environment.Values.sparkConnect.ivy.mountPath }}
+  resources:
+    requests:
+      cpu: {{ .Environment.Values.sparkConnect.resources.requests.cpu | quote }}
+      memory: {{ .Environment.Values.sparkConnect.resources.requests.memory | quote }}
+    limits:
+      cpu: {{ .Environment.Values.sparkConnect.resources.limits.cpu | quote }}
+      memory: {{ .Environment.Values.sparkConnect.resources.limits.memory | quote }}

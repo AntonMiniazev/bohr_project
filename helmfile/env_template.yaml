@@ -42,6 +42,13 @@ sparkConnect:
   ivy:
     enabled: true
     mountPath: /opt/spark/ivy
+  resources:
+    requests:
+      cpu: "1"
+      memory: 5Gi
+    limits:
+      cpu: "2"
+      memory: 8Gi
 
 unityCatalog:
   enabled: true
