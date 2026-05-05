@@ -24,7 +24,7 @@ sparkConnect:
   node: SPARK_NODE
   image:
     repository: spark
-    tag: "4.0.1"
+    tag: "4.1.1-python3"
     pullPolicy: IfNotPresent
   service:
     port: 15002
@@ -117,7 +117,11 @@ ivyCache:
     image: curlimages/curl:8.7.1
     ttlSecondsAfterFinished: 600
     urls:
-      - JAR_URL
+      - https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.35.4/bundle-2.35.4.jar
+      - https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.3/postgresql-42.7.3.jar
+      - https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.4.3/hadoop-aws-3.4.3.jar
+      - https://repo1.maven.org/maven2/io/delta/delta-spark_2.13/4.2.0/delta-spark_2.13-4.2.0.jar
+      - https://repo1.maven.org/maven2/io/delta/delta-storage/4.2.0/delta-storage-4.2.0.jar
       - UNITYCATALOG_SPARK_JAR_URL
       - UNITYCATALOG_CLIENT_JAR_URL
 

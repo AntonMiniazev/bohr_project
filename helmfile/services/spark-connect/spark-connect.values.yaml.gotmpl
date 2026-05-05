@@ -18,6 +18,16 @@ sparkConnect:
     pathStyle: {{ .Environment.Values.sparkConnect.minio.pathStyle }}
     ssl: {{ .Environment.Values.sparkConnect.minio.ssl }}
     secretName: {{ .Environment.Values.sparkConnect.minio.secretName }}
+    buckets:
+{{- $bucketPaths := .Environment.Values.unityCatalog.storage.bucketPaths | default (list .Environment.Values.unityCatalog.storage.modelRoot) -}}
+{{- range $path := $bucketPaths }}
+      - {{ regexReplaceAll "^s3a?://([^/]+).*$" $path "${1}" | quote }}
+{{- end }}
+  uc:
+    catalog: {{ .Environment.Values.global.projectName | quote }}
+    uri: {{ printf "http://unity-catalog-unitycatalog-server.%s.svc.cluster.local:8080" .Environment.Values.unityCatalog.namespace | quote }}
+    authType: static
+    authToken: {{ .Environment.Values.unityCatalog.storage.sessionToken | default "local-dev-token" | quote }}
   ivy:
     enabled: {{ .Environment.Values.sparkConnect.ivy.enabled | default true }}
     mountPath: {{ .Environment.Values.sparkConnect.ivy.mountPath }}

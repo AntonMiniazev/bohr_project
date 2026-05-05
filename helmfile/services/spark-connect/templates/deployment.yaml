@@ -45,6 +45,10 @@ spec:
               spark.ui.enabled                   false
               spark.sql.extensions               io.delta.sql.DeltaSparkSessionExtension
               spark.sql.catalog.spark_catalog    org.apache.spark.sql.delta.catalog.DeltaCatalog
+              spark.sql.catalog.{{ .Values.sparkConnect.uc.catalog }}           io.unitycatalog.spark.UCSingleCatalog
+              spark.sql.catalog.{{ .Values.sparkConnect.uc.catalog }}.uri       {{ .Values.sparkConnect.uc.uri }}
+              spark.sql.catalog.{{ .Values.sparkConnect.uc.catalog }}.auth.type {{ .Values.sparkConnect.uc.authType }}
+              spark.sql.catalog.{{ .Values.sparkConnect.uc.catalog }}.auth.token {{ .Values.sparkConnect.uc.authToken }}
               spark.hadoop.fs.s3a.endpoint       {{ .Values.sparkConnect.minio.endpoint }}
               spark.hadoop.fs.s3a.path.style.access {{ .Values.sparkConnect.minio.pathStyle }}
               spark.hadoop.fs.s3a.connection.ssl.enabled {{ .Values.sparkConnect.minio.ssl }}
@@ -61,12 +65,26 @@ spec:
               spark.hadoop.fs.s3.secret.key      ${MINIO_SECRET_KEY}
               spark.hadoop.fs.s3.endpoint.region {{ .Values.sparkConnect.minio.region }}
               spark.hadoop.fs.s3.impl            org.apache.hadoop.fs.s3a.S3AFileSystem
+              {{- range .Values.sparkConnect.minio.buckets }}
+              spark.hadoop.fs.s3a.bucket.{{ . }}.endpoint {{ $.Values.sparkConnect.minio.endpoint }}
+              spark.hadoop.fs.s3a.bucket.{{ . }}.path.style.access {{ $.Values.sparkConnect.minio.pathStyle }}
+              spark.hadoop.fs.s3a.bucket.{{ . }}.connection.ssl.enabled {{ $.Values.sparkConnect.minio.ssl }}
+              spark.hadoop.fs.s3a.bucket.{{ . }}.aws.credentials.provider org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
+              spark.hadoop.fs.s3a.bucket.{{ . }}.access.key ${MINIO_ACCESS_KEY}
+              spark.hadoop.fs.s3a.bucket.{{ . }}.secret.key ${MINIO_SECRET_KEY}
+              spark.hadoop.fs.s3.bucket.{{ . }}.endpoint {{ $.Values.sparkConnect.minio.endpoint }}
+              spark.hadoop.fs.s3.bucket.{{ . }}.path.style.access {{ $.Values.sparkConnect.minio.pathStyle }}
+              spark.hadoop.fs.s3.bucket.{{ . }}.connection.ssl.enabled {{ $.Values.sparkConnect.minio.ssl }}
+              spark.hadoop.fs.s3.bucket.{{ . }}.aws.credentials.provider org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
+              spark.hadoop.fs.s3.bucket.{{ . }}.access.key ${MINIO_ACCESS_KEY}
+              spark.hadoop.fs.s3.bucket.{{ . }}.secret.key ${MINIO_SECRET_KEY}
+              {{- end }}
               spark.hadoop.fs.AbstractFileSystem.s3.impl org.apache.hadoop.fs.s3a.S3A
               {{ if .Values.sparkConnect.ivy.enabled }}
-              spark.jars                         local:///opt/spark/ivy/hadoop-aws-3.4.1.jar,local:///opt/spark/ivy/bundle-2.24.6.jar,local:///opt/spark/ivy/delta-spark_2.13-4.0.1.jar,local:///opt/spark/ivy/delta-storage-4.0.1.jar,local:///opt/spark/ivy/unitycatalog-spark_2.13-0.4.1.jar,local:///opt/spark/ivy/unitycatalog-client-0.4.1.jar
+              spark.jars                         local:///opt/spark/ivy/hadoop-aws-3.4.3.jar,local:///opt/spark/ivy/bundle-2.35.4.jar,local:///opt/spark/ivy/delta-spark_2.13-4.2.0.jar,local:///opt/spark/ivy/delta-storage-4.2.0.jar,local:///opt/spark/ivy/unitycatalog-spark_2.13-0.4.1.jar,local:///opt/spark/ivy/unitycatalog-client-0.4.1.jar
               spark.jars.ivy                     {{ .Values.sparkConnect.ivy.mountPath }}
               {{ else }}
-              spark.jars.packages                io.delta:delta-spark_2.13:4.0.1,io.delta:delta-storage:4.0.1,org.apache.hadoop:hadoop-aws:3.4.1,software.amazon.awssdk:bundle:2.24.6,io.unitycatalog:unitycatalog-spark_2.13:0.4.1,io.unitycatalog:unitycatalog-client:0.4.1
+              spark.jars.packages                io.delta:delta-spark_2.13:4.2.0,io.delta:delta-storage:4.2.0,org.apache.hadoop:hadoop-aws:3.4.3,software.amazon.awssdk:bundle:2.35.4,io.unitycatalog:unitycatalog-spark_2.13:0.4.1,io.unitycatalog:unitycatalog-client:0.4.1
               {{ end }}
               EOF
               exec /opt/spark/sbin/start-connect-server.sh

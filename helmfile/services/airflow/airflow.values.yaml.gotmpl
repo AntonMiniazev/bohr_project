@@ -20,6 +20,22 @@ data:
 env:
   - name: AIRFLOW__PROVIDERS_ODBC__ALLOW_DRIVER_IN_EXTRA
     value: "true"
+  - name: AIRFLOW__LOGGING__REMOTE_LOGGING
+    value: "true"
+  - name: AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER
+    value: "s3://airflow-logs"
+  - name: AIRFLOW__LOGGING__REMOTE_LOG_CONN_ID
+    value: "aws_default"
+  - name: AIRFLOW_CONN_AWS_DEFAULT
+    value: "aws://?endpoint_url=http%3A%2F%2Fminio.ampere.svc.cluster.local%3A9000&region_name=us-east-1"
+
+secret:
+  - envName: AWS_ACCESS_KEY_ID
+    secretName: minio-creds
+    secretKey: MINIO_ACCESS_KEY
+  - envName: AWS_SECRET_ACCESS_KEY
+    secretName: minio-creds
+    secretKey: MINIO_SECRET_KEY
 
 
 webserverSecretKeySecretName: airflow-webserver-secret
