@@ -81,10 +81,10 @@ spec:
               {{- end }}
               spark.hadoop.fs.AbstractFileSystem.s3.impl org.apache.hadoop.fs.s3a.S3A
               {{ if .Values.sparkConnect.ivy.enabled }}
-              spark.jars                         local:///opt/spark/ivy/hadoop-aws-3.4.3.jar,local:///opt/spark/ivy/bundle-2.35.4.jar,local:///opt/spark/ivy/delta-spark_2.13-4.2.0.jar,local:///opt/spark/ivy/delta-storage-4.2.0.jar,local:///opt/spark/ivy/unitycatalog-spark_2.13-0.4.1.jar,local:///opt/spark/ivy/unitycatalog-client-0.4.1.jar
+              spark.jars                         local:///opt/spark/ivy/hadoop-aws-3.4.1.jar,local:///opt/spark/ivy/bundle-2.24.6.jar,local:///opt/spark/ivy/delta-spark_2.13-4.2.0.jar,local:///opt/spark/ivy/delta-storage-4.2.0.jar,local:///opt/spark/ivy/unitycatalog-spark_2.13-0.4.1.jar,local:///opt/spark/ivy/unitycatalog-client-0.4.1.jar
               spark.jars.ivy                     {{ .Values.sparkConnect.ivy.mountPath }}
               {{ else }}
-              spark.jars.packages                io.delta:delta-spark_2.13:4.2.0,io.delta:delta-storage:4.2.0,org.apache.hadoop:hadoop-aws:3.4.3,software.amazon.awssdk:bundle:2.35.4,io.unitycatalog:unitycatalog-spark_2.13:0.4.1,io.unitycatalog:unitycatalog-client:0.4.1
+              spark.jars.packages                io.delta:delta-spark_2.13:4.2.0,io.delta:delta-storage:4.2.0,org.apache.hadoop:hadoop-aws:3.4.1,software.amazon.awssdk:bundle:2.24.6,io.unitycatalog:unitycatalog-spark_2.13:0.4.1,io.unitycatalog:unitycatalog-client:0.4.1
               {{ end }}
               EOF
               exec /opt/spark/sbin/start-connect-server.sh

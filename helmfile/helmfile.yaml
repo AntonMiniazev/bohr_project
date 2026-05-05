@@ -92,7 +92,7 @@ releases:
 
   - name: spark-operator
     chart: spark-operator/spark-operator
-    version: 2.5.0
+    version: 2.4.0
     namespace: spark-operator
     createNamespace: true
     labels:
