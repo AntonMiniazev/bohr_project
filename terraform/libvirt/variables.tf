@@ -8,7 +8,7 @@ variable "identity" {
 variable "libvirt" {
   description = "Libvirt connection and storage"
   type = object({
-    libvirt_uri  = string
+    libvirt_uri = string
   })
 }
 
@@ -23,10 +23,10 @@ variable "image" {
 variable "network" {
   description = "Network and DHCP settings"
   type = object({
-    network_gateway    = string
-    network_interface  = string
-    network_dns        = list(string)
-    network_prefix     = number
+    network_gateway   = string
+    network_interface = string
+    network_dns       = list(string)
+    network_prefix    = number
     dchp_addresses_range = object({
       dhcp_start = string
       dhcp_end   = string
@@ -37,9 +37,9 @@ variable "network" {
 variable "ssh" {
   description = "SSH access configuration"
   type = object({
-    ssh_public_keys      = list(string)
+    ssh_public_keys        = list(string)
     control_plane_ssh_user = string
-    ssh_known_hosts_path = string
+    ssh_known_hosts_path   = string
   })
 }
 
@@ -54,7 +54,8 @@ variable "join" {
 variable "addons" {
   description = "Addons and manifests"
   type = object({
-    local_path_url = string
+    local_path_url      = string
+    gateway_api_version = string
   })
 }
 
@@ -92,8 +93,8 @@ variable "packages" {
   description = "Package versions and related configuration"
   type = object({
     kubernetes = object({
-      k8s_version  = string
-      repo_version = string
+      k8s_version    = string
+      repo_version   = string
       cluster_name   = string
       service_subnet = string
     })

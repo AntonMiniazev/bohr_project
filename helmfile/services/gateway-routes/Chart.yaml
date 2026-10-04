@@ -1,0 +1,5 @@
+apiVersion: v2
+name: gateway-routes
+description: Gateway API routes for Ampere platform services.
+type: application
+version: 0.1.0

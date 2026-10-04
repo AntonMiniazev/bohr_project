@@ -1,0 +1,5 @@
+apiVersion: v2
+name: lakekeeper-prereqs
+description: Create Lakekeeper database and Iceberg buckets on existing services.
+type: application
+version: 0.1.0

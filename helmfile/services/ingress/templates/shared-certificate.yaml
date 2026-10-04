@@ -2,16 +2,17 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: ampere-ingress-cert
-  namespace: {{ .Values.namespace }}
+  name: ampere-gateway-cert
+  namespace: {{ .Values.gateway.namespace }}
 spec:
   secretName: {{ .Values.tls.sharedSecret }}
   dnsNames:
     - {{ .Values.hosts.airflow | quote }}
     - {{ .Values.hosts.minio | quote }}
     - {{ .Values.hosts.grafana | quote }}
-    - {{ .Values.hosts.postgres | quote }}
     - {{ .Values.hosts.sparkconnect | quote }}
+    - {{ .Values.hosts.ucatalog | quote }}
+    - {{ .Values.hosts.lakekeeper | quote }}
 {{- if .Values.hosts.minioS3 }}
     - {{ .Values.hosts.minioS3 | quote }}
 {{- end }}

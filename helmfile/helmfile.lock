@@ -5,18 +5,18 @@ dependencies:
     version: 1.18.0
   - name: cert-manager
     repository: https://charts.jetstack.io
-    version: v1.16.3
-  - name: ingress-nginx
-    repository: https://kubernetes.github.io/ingress-nginx
-    version: 4.11.2
+    version: v1.21.1
   - name: keda
     repository: https://kedacore.github.io/charts
     version: 2.16.0
   - name: kube-prometheus-stack
     repository: https://prometheus-community.github.io/helm-charts
     version: 80.6.0
+  - name: lakekeeper
+    repository: https://lakekeeper.github.io/lakekeeper-charts/
+    version: 0.12.0
   - name: spark-operator
     repository: https://kubeflow.github.io/spark-operator
     version: 2.4.0
-digest: sha256:0a3e331c5af27c8f509cb744432a0068157a8523b998f7af8c50606fd3ec52f0
-generated: "2026-05-05T16:08:41.648459177Z"
+digest: sha256:3c39f8ad2eddc8e4af51c813ca052dee9e08a92403288c054856eaea83282f91
+generated: "2026-10-04T14:59:32.891040673+02:00"

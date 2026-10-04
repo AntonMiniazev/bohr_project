@@ -1,4 +1,0 @@
-*
-!api_proxy/**
-!pyproject.toml
-!uv.lock

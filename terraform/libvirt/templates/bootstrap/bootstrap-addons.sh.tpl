@@ -53,11 +53,20 @@
   
       echo "[DIAG] Installing Cilium CLI"
   
-      curl -L --fail -o /tmp/cilium.tar.gz \
-        https://github.com/cilium/cilium-cli/releases/download/${packages.cilium.version_cli}/cilium-linux-amd64.tar.gz
-  
-      tar -xzf /tmp/cilium.tar.gz -C /usr/local/bin
-      rm -f /tmp/cilium.tar.gz
+      cilium_cli_archive=/tmp/cilium-linux-amd64.tar.gz
+      curl -L --fail -o "$cilium_cli_archive" \
+        "https://github.com/cilium/cilium-cli/releases/download/${packages.cilium.version_cli}/cilium-linux-amd64.tar.gz"
+      curl -L --fail -o "$cilium_cli_archive.sha256sum" \
+        "https://github.com/cilium/cilium-cli/releases/download/${packages.cilium.version_cli}/cilium-linux-amd64.tar.gz.sha256sum"
+      (cd /tmp && sha256sum --check "$(basename "$cilium_cli_archive.sha256sum")")
+
+      tar -xzf "$cilium_cli_archive" -C /usr/local/bin
+      rm -f "$cilium_cli_archive" "$cilium_cli_archive.sha256sum"
+
+      echo "[DIAG] Installing Gateway API ${addons.gateway_api_version} CRDs"
+
+      kubectl apply --server-side -f \
+        "https://github.com/kubernetes-sigs/gateway-api/releases/download/${addons.gateway_api_version}/standard-install.yaml"
   
       echo "[DIAG] Installing Cilium CNI"
   
@@ -73,7 +82,11 @@
         --set ipam.operator.clusterPoolIPv4PodCIDRList=${packages.cilium.pod_network_cidr} \
         --set ipam.operator.clusterPoolIPv4MaskSize="24" \
         --set ipv4NativeRoutingCIDR=${packages.cilium.pod_network_cidr} \
-        --set operator.replicas=${packages.cilium.operator_replicas}
+        --set operator.replicas=${packages.cilium.operator_replicas} \
+        --set envoy.enabled=true \
+        --set gatewayAPI.enabled=true \
+        --set gatewayAPI.hostNetwork.enabled=true \
+        --set gatewayAPI.hostNetwork.nodes.matchLabels.ampere-gateway=enabled
   
       echo "[DIAG] Waiting for Cilium to become ready..."
       cilium status --wait

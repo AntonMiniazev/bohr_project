@@ -7,8 +7,9 @@ image:
 
 service:
   name: {{ .Environment.Values.postgresql.host }}
-  type: ClusterIP
+  type: {{ .Environment.Values.postgresql.service.type }}
   port: {{ .Environment.Values.postgresql.port }}
+  nodePort: {{ .Environment.Values.postgresql.service.nodePort }}
 
 persistence:
   enabled: true
@@ -24,7 +25,7 @@ resources:
 
 tls:
   enabled: {{ .Environment.Values.postgresql.tls.enabled | default false }}
-  secretName: {{ .Environment.Values.ingress.tls.sharedSecret }}
+  secretName: {{ .Environment.Values.postgresql.tls.secretName }}
 
 {{- with .Environment.Values.postgresql.access.allowedCidrs }}
 access:

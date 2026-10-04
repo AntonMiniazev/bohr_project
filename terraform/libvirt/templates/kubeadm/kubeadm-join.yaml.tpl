@@ -9,5 +9,7 @@ discovery:
 nodeRegistration:
   criSocket: unix:///var/run/containerd/containerd.sock
   kubeletExtraArgs:
-    cloud-provider: "none"
-    node-ip: ${node_ip}
+    - name: cloud-provider
+      value: "none"
+    - name: node-ip
+      value: ${node_ip}

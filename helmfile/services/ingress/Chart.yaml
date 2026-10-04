@@ -1,5 +1,5 @@
 apiVersion: v2
-name: ingress-resources
-description: Ingress resources, certificates, and TCP services for cluster endpoints.
+name: gateway-resources
+description: Cilium Gateway API listeners and certificates for internal cluster endpoints.
 type: application
-version: 0.1.0
+version: 0.2.0

@@ -13,7 +13,9 @@ nodeRegistration:
     - name: node-ip
       value: ${control_plane.ip}
     - name: cgroup-driver
-      value: systemd  
+      value: systemd
+    - name: node-labels
+      value: ampere-gateway=enabled
 ---
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: ClusterConfiguration

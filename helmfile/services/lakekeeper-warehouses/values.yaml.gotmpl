@@ -1,0 +1,6 @@
+enabled: {{ .Environment.Values.lakekeeper.auth.enabled }}
+catalogUrl: http://lakekeeper.ampere.svc.cluster.local:8181
+minioEndpoint: {{ .Environment.Values.minio.server_url | quote }}
+oauthUrl: https://login.microsoftonline.com/{{ .Environment.Values.lakekeeper.auth.tenantId }}/oauth2/v2.0/token
+oauthScope: api://{{ .Environment.Values.lakekeeper.auth.apiClientId }}/.default
+image: python:3.12-alpine

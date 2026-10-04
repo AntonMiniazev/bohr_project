@@ -20,17 +20,17 @@ repositories:
     url: https://prometheus-community.github.io/helm-charts
   - name: spark-operator
     url: https://kubeflow.github.io/spark-operator
-  - name: ingress-nginx
-    url: https://kubernetes.github.io/ingress-nginx
   - name: jetstack
     url: https://charts.jetstack.io
   - name: nfs-ganesha
     url: https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner
+  - name: lakekeeper
+    url: https://lakekeeper.github.io/lakekeeper-charts/
 
 releases:
   - name: cert-manager
     chart: jetstack/cert-manager
-    version: 1.16.3
+    version: 1.21.1
     namespace: cert-manager
     createNamespace: true
     labels:
@@ -38,17 +38,6 @@ releases:
       tier: infra
     values:
       - services/cert-manager/cert-manager.values.yaml.gotmpl
-
-  - name: ingress-nginx
-    chart: ingress-nginx/ingress-nginx
-    version: 4.11.2
-    namespace: ingress-nginx
-    createNamespace: true
-    labels:
-      app: ingress-nginx
-      tier: infra
-    values:
-      - services/ingress-nginx/ingress-nginx.values.yaml.gotmpl
 
   - name: external-secrets
     chart: ./services/external-secrets
@@ -88,7 +77,6 @@ releases:
       - services/monitoring/grafana.credentials.yaml
     needs:
       - "{{ .Environment.Values.global.namespace }}/ingress-resources"
-      - ingress-nginx/ingress-nginx
 
   - name: spark-operator
     chart: spark-operator/spark-operator
@@ -114,7 +102,6 @@ releases:
       - "{{ .Environment.Values.global.namespace }}/ivy-cache"
       - "{{ .Environment.Values.global.namespace }}/minio"
       - "{{ .Environment.Values.global.namespace }}/ingress-resources"
-      - ingress-nginx/ingress-nginx
 
   - name: unity-catalog
     chart: ./services/unity-catalog
@@ -149,7 +136,7 @@ releases:
     needs:
       - "ampere/postgresql"
       - "ampere/minio"
-      - ingress-nginx/ingress-nginx
+      - "{{ .Environment.Values.global.namespace }}/ingress-resources"
 
   - name: airflow-spark-rbac
     chart: ./services/airflow-spark-rbac
@@ -176,10 +163,10 @@ releases:
     namespace: "{{ .Environment.Values.global.namespace }}"
     createNamespace: true
     labels:
-      app: ingress
+      app: gateway
       tier: infra
     values:
-      - services/ingress/ingress.values.yaml.gotmpl
+      - services/ingress/gateway.values.yaml.gotmpl
     hooks:
       - events: ["preapply"]
         command: "bash"
@@ -188,7 +175,6 @@ releases:
           - "sops -d services/ingress/ca.secret.yaml | kubectl apply -f -"
     needs:
       - cert-manager/cert-manager
-      - ingress-nginx/ingress-nginx
 
   - name: keda
     chart: kedacore/keda
@@ -229,6 +215,53 @@ releases:
           - "-c"
           - "sops -d services/minio/minio.credentials.yaml | kubectl apply -n ampere -f -"
 
+  - name: lakekeeper-prereqs
+    chart: ./services/lakekeeper-prereqs
+    namespace: ampere
+    labels:
+      app: lakekeeper
+      tier: governance
+    values:
+      - services/lakekeeper-prereqs/values.yaml.gotmpl
+    needs:
+      - ampere/postgresql
+      - ampere/minio
+
+  - name: lakekeeper
+    chart: lakekeeper/lakekeeper
+    version: 0.12.0
+    namespace: ampere
+    labels:
+      app: lakekeeper
+      tier: governance
+    values:
+      - services/lakekeeper/lakekeeper.values.yaml.gotmpl
+    needs:
+      - ampere/lakekeeper-prereqs
+
+  - name: lakekeeper-warehouses
+    chart: ./services/lakekeeper-warehouses
+    namespace: ampere
+    labels:
+      app: lakekeeper
+      tier: governance
+    values:
+      - services/lakekeeper-warehouses/values.yaml.gotmpl
+    needs:
+      - ampere/lakekeeper
+      - ampere/external-secrets-resources
+
+  - name: airflow-dags-source
+    chart: ./services/airflow-dags-source
+    namespace: ampere
+    labels:
+      app: airflow-dags-source
+      tier: workflow
+    values:
+      - services/airflow-dags-source/values.yaml.gotmpl
+    needs:
+      - ampere/ivy-cache
+
   - name: airflow
     chart: apache-airflow/airflow
     version: 1.18.0
@@ -252,3 +285,22 @@ releases:
       - keda/keda
       - "{{ .Environment.Values.global.namespace }}/airflow-spark-rbac"
       - "ampere/postgresql"
+      - "ampere/airflow-dags-source"
+
+  - name: gateway-routes
+    chart: ./services/gateway-routes
+    namespace: "{{ .Environment.Values.gateway.namespace }}"
+    createNamespace: true
+    labels:
+      app: gateway
+      tier: infra
+    values:
+      - services/gateway-routes/gateway-routes.values.yaml.gotmpl
+    needs:
+      - "{{ .Environment.Values.global.namespace }}/ingress-resources"
+      - "{{ .Environment.Values.monitoring.namespace }}/kube-prometheus-stack"
+      - "{{ .Environment.Values.global.namespace }}/spark-connect"
+      - "{{ .Environment.Values.unityCatalog.namespace }}/unity-catalog"
+      - "{{ .Environment.Values.global.namespace }}/minio"
+      - "{{ .Environment.Values.global.namespace }}/airflow"
+      - "{{ .Environment.Values.global.namespace }}/lakekeeper"

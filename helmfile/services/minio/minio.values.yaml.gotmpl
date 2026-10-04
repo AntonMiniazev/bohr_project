@@ -28,11 +28,10 @@ users:
 nodeSelector:
   kubernetes.io/hostname: {{ .Environment.Values.minio.node }}
 ingress:
-  enabled: true
-  className: {{ .Environment.Values.ingress.className }}
-  host: {{ .Environment.Values.ingress.hosts.minio }}
-  s3Host: {{ .Environment.Values.minio.s3_endpoint }}
-  tlsSecret: {{ .Environment.Values.ingress.tls.sharedSecret }}
+  enabled: false
+  host: {{ .Environment.Values.gateway.hosts.minio }}
+  s3Host: {{ .Environment.Values.gateway.hosts.minioS3 }}
+  tlsSecret: {{ .Environment.Values.gateway.tls.sharedSecret }}
 
 server:
   url: {{ .Environment.Values.minio.server_url }}

@@ -1,0 +1,10 @@
+postgres:
+  host: {{ .Environment.Values.postgresql.host }}
+  image: {{ .Environment.Values.postgresql.image.repository }}:{{ .Environment.Values.postgresql.image.tag }}
+minio:
+  endpoint: {{ .Environment.Values.minio.server_url }}
+  image: alpine:3.21
+buckets:
+  - ampere-iceberg-bronze
+  - ampere-iceberg-silver
+  - ampere-iceberg-gold

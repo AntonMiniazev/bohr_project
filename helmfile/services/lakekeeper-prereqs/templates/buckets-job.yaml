@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lakekeeper-buckets-create
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: aws-cli
+          image: {{ .Values.minio.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              apk add --no-cache aws-cli=2.22.10-r0 >/dev/null
+              endpoint={{ .Values.minio.endpoint | quote }}
+              {{- range .Values.buckets }}
+              if ! aws --endpoint-url "$endpoint" s3api head-bucket --bucket {{ . }} >/dev/null 2>&1; then
+                aws --endpoint-url "$endpoint" s3api create-bucket --bucket {{ . }}
+              fi
+              {{- end }}
+          env:
+            - name: AWS_DEFAULT_REGION
+              value: us-east-1
+            - name: AWS_EC2_METADATA_DISABLED
+              value: "true"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: minio-creds
+                  key: MINIO_ACCESS_KEY
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-creds
+                  key: MINIO_SECRET_KEY

@@ -13,8 +13,9 @@ System_Boundary(home, "Home Lab") {
     System(homek8s, "Internal Kubernetes Cluster", "kubeadm control plane + workers for internal workloads")
 }
 
-System_Boundary(cloud, "Public Cloud (planned)") {
-    System(apik8s, "Public Kubernetes Cluster", "Single-node control plane for API workloads")
+System_Boundary(cloud, "Public Cloud / Hetzner") {
+    System(hetzner, "Hetzner Curie Server", "Ubuntu VM hosting public Curie runtime")
+    System(curieDocker, "Curie Docker Runtime", "Docker Compose services: API, PostgreSQL, cache refresh jobs, Streamlit runners")
 }
 
 Rel(dev, git, "Pushes IaC and images", "Git/CI")
@@ -24,7 +25,9 @@ Rel(dev, homek8s, "Accesses internal services", "airflow.local, minio.local, spa
 Rel(dev, keyvault, "Manages keys and access", "Azure")
 Rel(homek8s, keyvault, "Decrypts and syncs secrets", "SOPS/ESO")
 Rel(homek8s, git, "Pulls container images", "Registry")
-Rel(apik8s, git, "Pulls container images", "Registry")
+Rel(hetzner, git, "Pulls Curie images and deployment files", "GitHub Actions/Registry")
+Rel(hetzner, curieDocker, "Runs application containers", "Docker Compose")
+Rel(curieDocker, homek8s, "Reads governed Gold data through internal endpoints", "UC/MinIO")
 
 SHOW_LEGEND()
 @enduml

@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: tcp-services
-  namespace: ingress-nginx
-data:
-  "{{ .Values.tcp.postgresPort }}": "{{ .Values.namespace }}/{{ .Values.tcp.postgresService }}:{{ .Values.tcp.postgresPort }}"
-  "{{ .Values.tcp.minioPort }}": "{{ .Values.namespace }}/{{ .Values.tcp.minioService }}:{{ .Values.tcp.minioPort }}"

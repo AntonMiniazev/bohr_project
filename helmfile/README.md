@@ -1,6 +1,6 @@
 # Helmfile: Cluster Services Deployment
 
-This Helmfile configuration deploys platform services into the Kubernetes cluster after the control plane and workers are ready. It installs cert-manager, ingress-nginx, External Secrets Operator, KEDA, Spark Operator, monitoring, PostgreSQL, MinIO, Airflow, Spark Connect, and Unity Catalog OSS, with secrets managed by SOPS and Azure Key Vault.
+This Helmfile configuration deploys platform services into the Kubernetes cluster after the control plane and workers are ready. It installs cert-manager, Cilium Gateway API resources, External Secrets Operator, KEDA, Spark Operator, monitoring, PostgreSQL, MinIO, Airflow, Spark Connect, and Unity Catalog OSS, with secrets managed by SOPS and Azure Key Vault.
 
 Guide
 - [Helmfile: Cluster Services Deployment](#helmfile-cluster-services-deployment)
@@ -27,30 +27,32 @@ export AZURE_KEYVAULT_URL=...
 
 Cluster access
 - Ensure `KUBECONFIG` points at the target cluster.
+- Ensure Cilium Gateway API support and the standard Gateway API CRDs are installed by Terraform bootstrap.
 
 ## Detailed description of deployed infrastructure
 
 Namespaces
 - `cert-manager`: cert-manager CRDs and controllers.
-- `ingress-nginx`: ingress-nginx controller and TCP proxying.
+- `ampere-gateway`: the shared Cilium Gateway, HTTP-to-HTTPS redirect, and TLS Secret.
 - `external-secrets`: External Secrets Operator.
 - `keda`: KEDA operator and metrics components.
 - `monitoring`: Prometheus and Grafana monitoring stack.
 - `spark-operator`: Spark Operator control plane.
-- `ampere`: application workloads (PostgreSQL, MinIO, Airflow) and ingress resources.
+- `ampere`: application workloads (PostgreSQL, MinIO, Airflow) and HTTPRoutes.
 - `unity-catalog`: Unity Catalog server and UI.
 
 Services and roles
-- [cert-manager](https://cert-manager.io/) (jetstack chart): issues TLS certificates for ingress hosts.
-- [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) (ingress-nginx chart): ingress controller for HTTP/S and TCP services.
+- [cert-manager](https://cert-manager.io/) (jetstack chart): issues the shared TLS certificate used by the Gateway.
+- [Cilium Gateway API](https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/): routes internal HTTP/S traffic through the host-network Gateway provisioned by Cilium.
 - [External Secrets Operator](https://external-secrets.io/) (external-secrets chart): syncs external secret stores into Kubernetes Secrets.
 - External Secrets resources (external-secrets chart): SecretStore and ExternalSecret manifests for Key Vault-backed secrets.
 - [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) (prometheus-community chart): Prometheus metrics collection with Grafana dashboards.
 - [Spark Operator](https://github.com/kubeflow/spark-operator) (spark-operator chart): runs SparkApplication workloads for ETL and batch processing.
 - [Ivy cache](services/ivy-cache) (custom chart): shared PVC for Spark JAR dependencies, mountable by Spark driver/executor pods.
 - [Airflow Spark RBAC](services/airflow-spark-rbac) (custom chart): grants the Airflow worker service account permissions to create SparkApplication CRs.
-- [Ingress resources](services/ingress) (custom chart): ingress routes, TCP mappings, and local CA certificates for internal TLS.
-- [PostgreSQL](services/postgresql) (custom chart): metadata and operational databases for Airflow and application workloads, exposed through ingress-nginx TCP forwarding with allowlisted networks.
+- [Gateway resources](services/ingress) (custom chart): shared Gateway listeners, local CA certificates, and internal TLS configuration.
+- [Gateway routes](services/gateway-routes) (custom chart): HTTPRoutes for Airflow, MinIO, Grafana, and Unity Catalog.
+- [PostgreSQL](services/postgresql) (custom chart): metadata and operational databases for Airflow and application workloads, exposed through a dedicated NodePort and the Ubuntu host TCP proxy.
 - [MinIO](services/minio) (custom chart): S3-compatible object storage.
 - [Airflow](https://airflow.apache.org/docs/helm-chart/1.18.0/) (apache-airflow chart): orchestration for pipelines and DAG execution.
 - [KEDA](https://github.com/kedacore/charts) (kedacore chart): event-driven autoscaling for Airflow workers.
@@ -58,11 +60,10 @@ Services and roles
 - [Unity Catalog OSS](services/unity-catalog) (custom chart): metadata governance API and web UI.
 
 Versions (current defaults)
-- cert-manager chart `1.16.3`: [`helmfile.yaml`](helmfile.yaml)
-- ingress-nginx chart `4.11.2`: [`helmfile.yaml`](helmfile.yaml)
+- cert-manager chart `1.21.1`: [`helmfile.yaml`](helmfile.yaml)
 - External Secrets chart `0.10.5`: [`helmfile.yaml`](helmfile.yaml)
 - kube-prometheus-stack chart `80.6.0`: [`helmfile.yaml`](helmfile.yaml)
-- spark-operator chart `2.5.0`: [`helmfile.yaml`](helmfile.yaml)
+- spark-operator chart `2.4.0`: [`helmfile.yaml`](helmfile.yaml)
 - KEDA chart `2.16.0`: [`helmfile.yaml`](helmfile.yaml)
 - Airflow chart `1.18.0`: [`helmfile.yaml`](helmfile.yaml)
 - Airflow image tag: [`env.yaml`](env.yaml)

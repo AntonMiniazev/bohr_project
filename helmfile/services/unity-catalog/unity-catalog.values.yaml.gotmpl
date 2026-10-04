@@ -3,7 +3,7 @@
 {{- $bucketPaths := .Environment.Values.unityCatalog.storage.bucketPaths | default (list .Environment.Values.unityCatalog.storage.modelRoot) -}}
 storage:
   modelStorageRoot: {{ .Environment.Values.unityCatalog.storage.modelRoot | quote }}
-  sessionToken: {{ .Environment.Values.unityCatalog.storage.sessionToken | default "local-dev-token" | quote }}
+  sessionToken: {{ .Environment.Values.unityCatalog.storage.sessionToken | quote }}
   credentials:
     s3:
 {{- range $bucketPath := $bucketPaths }}
@@ -19,6 +19,10 @@ auth:
 server:
   enabled: {{ .Environment.Values.unityCatalog.enabled | default true }}
   logLevel: info
+  config:
+    extraProperties:
+      server.managed-table.enabled: "true"
+      storage-root.tables: {{ .Environment.Values.unityCatalog.storage.tableRoot | quote }}
   db:
     type: postgresql
     hbm2ddlAuto: {{ .Environment.Values.unityCatalog.database.hbm2ddlAuto | default "update" | quote }}
@@ -34,6 +38,8 @@ server:
         mode: {{ .Environment.Values.unityCatalog.database.ssl.mode | quote }}
   deployment:
     replicaCount: 1
+    updateStrategy:
+      type: Recreate
     image:
       repository: {{ .Environment.Values.unityCatalog.image.server.repository }}
       tag: {{ .Environment.Values.unityCatalog.image.server.tag }}
@@ -52,7 +58,8 @@ server:
         memory: {{ .Environment.Values.unityCatalog.resources.server.limits.memory | quote }}
 
 ui:
-  enabled: false
+  enabled: true
+  proxyApiRequests: false
   deployment:
     image:
       repository: {{ .Environment.Values.unityCatalog.image.ui.repository }}
@@ -72,7 +79,7 @@ ui:
         memory: {{ .Environment.Values.unityCatalog.resources.ui.limits.memory | quote }}
 
 ingress:
-  enabled: {{ .Environment.Values.unityCatalog.ingress.enabled | default true }}
-  host: {{ .Environment.Values.unityCatalog.ingress.host | quote }}
-  ingressClassName: {{ .Environment.Values.unityCatalog.ingress.className | quote }}
-  tlsSecretName: {{ .Environment.Values.unityCatalog.ingress.tlsSecret | quote }}
+  enabled: false
+
+httpRoute:
+  enabled: false

@@ -34,14 +34,14 @@ network = {
 
 packages = {
   kubernetes = {
-    k8s_version   = "stable"
-    repo_version  = "v1.31"
+    k8s_version   = "v1.36.3"
+    repo_version  = "v1.36"
     cluster_name  = "CLUSTER_NAME"
     service_subnet = "10.96.0.0/12"
   }
   cilium = {
-    version_cli       = "v0.18.9"
-    version_operator  = "1.18.4"
+    version_cli       = "v0.19.7"
+    version_operator  = "1.20.0"
     operator_replicas = 1
     pod_network_cidr  = "10.10.0.0/16"
   }
@@ -65,7 +65,8 @@ join = {
 }
 
 addons = {
-  local_path_url = "https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml"
+  local_path_url      = "https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml"
+  gateway_api_version = "v1.6.1"
 }
 
 registry = {
@@ -93,7 +94,7 @@ fleet = {
     "WORKER_NODE_2" = {
       memory  = 4096
       vcpu    = 2
-      disk_gb = 40
+      disk_gb = 60
       ip      = "192.168.11.102"
       mac     = "02:28:A7:6C:33:8D"
     }

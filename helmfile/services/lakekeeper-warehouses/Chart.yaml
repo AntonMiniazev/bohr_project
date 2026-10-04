@@ -1,0 +1,4 @@
+apiVersion: v2
+name: lakekeeper-warehouses
+version: 0.1.0
+description: Reconcile Ampere Iceberg warehouses and MinIO credential vending

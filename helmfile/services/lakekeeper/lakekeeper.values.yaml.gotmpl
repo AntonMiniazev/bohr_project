@@ -1,0 +1,35 @@
+fullnameOverride: lakekeeper
+helmWait: true
+postgresql:
+  enabled: false
+externalDatabase:
+  host_read: {{ .Environment.Values.postgresql.host }}.{{ .Environment.Values.global.namespace }}.svc.cluster.local
+  host_write: {{ .Environment.Values.postgresql.host }}.{{ .Environment.Values.global.namespace }}.svc.cluster.local
+  port: {{ .Environment.Values.postgresql.port }}
+  database: lakekeeper_db
+  userSecret: postgresql-env
+  userSecretKey: POSTGRES_USER
+  passwordSecret: postgresql-env
+  passwordSecretKey: POSTGRES_PASSWORD
+catalog:
+  replicas: 1
+  nodeSelector:
+    kubernetes.io/hostname: {{ .Environment.Values.infra.node }}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  config:
+    LAKEKEEPER__UI__LAKEKEEPER_URL: https://{{ .Environment.Values.gateway.hosts.lakekeeper }}
+{{- if .Environment.Values.lakekeeper.auth.enabled }}
+auth:
+  oauth2:
+    providerUri: https://login.microsoftonline.com/{{ .Environment.Values.lakekeeper.auth.tenantId }}/v2.0
+    audience: {{ .Environment.Values.lakekeeper.auth.apiClientId }}
+    ui:
+      clientID: {{ .Environment.Values.lakekeeper.auth.uiClientId | quote }}
+      scopes: {{ printf "openid profile api://%s/lakekeeper" .Environment.Values.lakekeeper.auth.apiClientId | quote }}
+{{- end }}

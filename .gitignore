@@ -27,6 +27,7 @@ crash.*.log
 # =========================
 # Secrets / local env
 # =========================
+.local/
 env_files/
 *.yaml.dec
 *.dec.yaml

@@ -1,0 +1,21 @@
+gateway:
+  namespace: {{ .Environment.Values.gateway.namespace }}
+  name: {{ .Environment.Values.gateway.name }}
+  className: {{ .Environment.Values.gateway.className }}
+  listeners:
+    httpPort: {{ .Environment.Values.gateway.listeners.httpPort }}
+    httpsPort: {{ .Environment.Values.gateway.listeners.httpsPort }}
+hosts:
+  airflow: {{ .Environment.Values.gateway.hosts.airflow }}
+  minio: {{ .Environment.Values.gateway.hosts.minio }}
+  minioS3: {{ .Environment.Values.gateway.hosts.minioS3 }}
+  grafana: {{ .Environment.Values.gateway.hosts.grafana }}
+  sparkconnect: {{ .Environment.Values.gateway.hosts.sparkconnect }}
+  ucatalog: {{ .Environment.Values.gateway.hosts.ucatalog }}
+  lakekeeper: {{ .Environment.Values.gateway.hosts.lakekeeper }}
+tls:
+  caIssuerName: {{ .Environment.Values.gateway.tls.caIssuerName }}
+  caSecretName: {{ .Environment.Values.gateway.tls.caSecretName }}
+  sharedSecret: {{ .Environment.Values.gateway.tls.sharedSecret }}
+  bootstrap:
+    enabled: {{ .Environment.Values.gateway.tls.bootstrap.enabled | default false }}

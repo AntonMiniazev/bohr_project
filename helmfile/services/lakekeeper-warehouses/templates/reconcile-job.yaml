@@ -1,0 +1,116 @@
+{{- if .Values.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lakekeeper-warehouses-reconcile
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: reconcile
+          image: {{ .Values.image | quote }}
+          command: [python, -c]
+          args:
+            - |
+              import json
+              import os
+              import urllib.parse
+              import urllib.request
+
+              catalog = os.environ["CATALOG_URL"].rstrip("/")
+              endpoint = os.environ["MINIO_ENDPOINT"].rstrip("/") + "/"
+              token_body = urllib.parse.urlencode({
+                  "client_id": os.environ["LAKEKEEPER_CLIENT_ID"],
+                  "client_secret": os.environ["LAKEKEEPER_CLIENT_SECRET"],
+                  "grant_type": "client_credentials",
+                  "scope": os.environ["OAUTH_SCOPE"],
+              }).encode()
+              with urllib.request.urlopen(
+                  urllib.request.Request(os.environ["OAUTH_URL"], data=token_body), timeout=30
+              ) as response:
+                  token = json.load(response)["access_token"]
+              headers = {"Authorization": f"Bearer {token}"}
+              base = catalog + "/management/v1/warehouse"
+              with urllib.request.urlopen(urllib.request.Request(base, headers=headers), timeout=30) as response:
+                  current = {item["name"]: item for item in json.load(response)["warehouses"]}
+              credential = {
+                  "type": "s3",
+                  "credential-type": "access-key",
+                  "aws-access-key-id": os.environ["MINIO_ACCESS_KEY"],
+                  "aws-secret-access-key": os.environ["MINIO_SECRET_KEY"],
+              }
+
+              for name in ("bronze", "silver", "gold"):
+                  bucket = "ampere-iceberg-" + name
+                  existing = current.get(name)
+                  if existing is None:
+                      profile = {
+                          "type": "s3", "bucket": bucket, "region": "us-east-1",
+                          "endpoint": endpoint, "flavor": "s3-compat",
+                          "path-style-access": True, "sts-enabled": True,
+                          "remote-signing-enabled": True,
+                      }
+                      payload = {
+                          "warehouse-name": name,
+                          "storage-profile": profile,
+                          "storage-credential": credential,
+                          "delete-profile": {"type": "hard"},
+                      }
+                      url = base
+                      action = "created"
+                  else:
+                      profile = existing["storage-profile"]
+                      assert profile["bucket"] == bucket, f"{name}: unexpected bucket"
+                      assert profile["endpoint"].rstrip("/") == endpoint.rstrip("/"), f"{name}: unexpected endpoint"
+                      assert profile["flavor"] == "s3-compat", f"{name}: unexpected storage flavor"
+                      assert profile["path-style-access"] is True, f"{name}: path-style access disabled"
+                      if profile["sts-enabled"]:
+                          print(f"{name}: STS enabled, bucket={bucket}, endpoint={endpoint}")
+                          continue
+                      profile["sts-enabled"] = True
+                      payload = {"storage-profile": profile, "storage-credential": credential}
+                      url = base + "/" + existing["id"] + "/storage"
+                      action = "updated"
+                  request = urllib.request.Request(
+                      url, data=json.dumps(payload).encode(),
+                      headers={**headers, "Content-Type": "application/json"},
+                  )
+                  with urllib.request.urlopen(request, timeout=45) as response:
+                      assert response.status in (200, 201, 204), response.status
+                      print(f"{name}: {action}, STS enabled, bucket={bucket}, endpoint={endpoint}")
+          env:
+            - name: CATALOG_URL
+              value: {{ .Values.catalogUrl | quote }}
+            - name: MINIO_ENDPOINT
+              value: {{ .Values.minioEndpoint | quote }}
+            - name: OAUTH_URL
+              value: {{ .Values.oauthUrl | quote }}
+            - name: OAUTH_SCOPE
+              value: {{ .Values.oauthScope | quote }}
+            - name: LAKEKEEPER_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: lakekeeper-spark-client
+                  key: client-id
+            - name: LAKEKEEPER_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: lakekeeper-spark-client
+                  key: client-secret
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-creds
+                  key: MINIO_ACCESS_KEY
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-creds
+                  key: MINIO_SECRET_KEY
+{{- end }}

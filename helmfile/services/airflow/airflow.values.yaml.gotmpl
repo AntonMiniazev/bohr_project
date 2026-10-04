@@ -18,6 +18,18 @@ data:
     sslmode: disable
 
 env:
+  - name: PYTHONPATH
+    value: "/opt/airflow/dags/current"
+  - name: AIRFLOW_VAR_ICEBERG_SPARK_IMAGE
+    value: "ghcr.io/antonminiazev/ampere-spark-iceberg:sha-428c77b01edea2ebd9d207f13d0dc27b60e03867"
+  - name: AIRFLOW_VAR_ICEBERG_DBT_IMAGE
+    value: "ghcr.io/antonminiazev/ampere-dbt-iceberg:sha-cd89ec4219cc512365f464dd577024f51bf2b67d"
+  - name: AIRFLOW_VAR_ICEBERG_BRONZE_WAREHOUSE
+    value: bronze
+  - name: AIRFLOW_VAR_ICEBERG_SILVER_WAREHOUSE
+    value: silver
+  - name: AIRFLOW_VAR_ICEBERG_GOLD_WAREHOUSE
+    value: gold
   - name: AIRFLOW__PROVIDERS_ODBC__ALLOW_DRIVER_IN_EXTRA
     value: "true"
   - name: AIRFLOW__LOGGING__REMOTE_LOGGING
@@ -47,20 +59,9 @@ images:
     tag: {{ .Environment.Values.airflow.image.tag }}
     pullPolicy: {{ .Environment.Values.airflow.image.pullPolicy }}
 
-{{- if .Environment.Values.airflow.image.pullSecret }}
-registry:
-  secretName: {{ .Environment.Values.airflow.image.pullSecret }}
-{{- end }}
-
 ingress:
   apiServer:
-    enabled: true
-    ingressClassName: {{ .Environment.Values.ingress.className | quote }}
-    hosts:
-      - name: {{ .Environment.Values.ingress.hosts.airflow | quote }}
-        tls:
-          enabled: true
-          secretName: {{ .Environment.Values.ingress.tls.sharedSecret | quote }}
+    enabled: false
 
 nodeSelector:
   kubernetes.io/hostname: {{ .Environment.Values.airflow.node }}
@@ -91,6 +92,8 @@ workers:
       memory: "2Gi"
 
 config:
+  core:
+    dags_folder: /opt/airflow/dags/current
   celery:
     worker_concurrency: 2
   logging:
@@ -121,20 +124,24 @@ triggerer:
     initialDelaySeconds: 20
 
 redis:
+  containerLifecycleHooks:
+    preStop:
+      exec:
+        command:
+          - sh
+          - -c
+          - 'redis-cli -a "$REDIS_PASSWORD" shutdown save || true'
   persistence:
     storageClassName: {{ .Environment.Values.global.storageClass }}
 
 dags:
   persistence:
-    storageClassName: {{ .Environment.Values.global.storageClass }}
-  gitSync:
     enabled: true
-    repo: {{ .Environment.Values.airflow.gitRepo }}
-    branch: master
-    subPath: "dags"
-    credentialsSecret: git-credentials
-    ref: HEAD
-    period: 15s
+    existingClaim: airflow-dags-source
+    storageClassName: {{ .Environment.Values.ivyCacheNfs.storageClass }}
+    accessMode: ReadWriteMany
+  gitSync:
+    enabled: false
 
 logs:
   persistence:
@@ -149,6 +156,11 @@ webserver:
   enabled: false
 
 apiServer:
+  # The API server is a single replica pinned to one node. Recreate avoids a
+  # second surge pod that cannot fit on that node during Helm upgrades.
+  strategy:
+    type: Recreate
+
   waitForMigrations:
     enabled: false
 
@@ -193,6 +205,8 @@ apiServer:
       value: "1"
 
 scheduler:
+  strategy:
+    type: Recreate
   livenessProbe:
     timeoutSeconds: 90
     periodSeconds: 60

@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-dags-source
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: airflow-dags-source
+  template:
+    metadata:
+      labels:
+        app: airflow-dags-source
+      annotations:
+        checksum/script: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: {{ .Values.node | quote }}
+      containers:
+        - name: sync
+          image: {{ .Values.image | quote }}
+          command:
+            - /bin/sh
+            - /scripts/sync.sh
+          env:
+            - name: REPOSITORY
+              value: {{ .Values.repository | quote }}
+            - name: PRODUCTION_BRANCH
+              value: {{ .Values.productionBranch | quote }}
+            - name: ICEBERG_BRANCH
+              value: {{ .Values.icebergBranch | quote }}
+            - name: SYNC_INTERVAL_SECONDS
+              value: {{ .Values.syncIntervalSeconds | quote }}
+            - name: GIT_TERMINAL_PROMPT
+              value: "0"
+          readinessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "test -f /dags/current/utils/ampere_dag_config.py && test -f /dags/current/my_dags/ampere__iceberg__bronze__raw_to_iceberg__daily.py && test -f /dags/current/my_dags/ampere__iceberg__silver_gold__dbt_duckdb__daily.py"]
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          volumeMounts:
+            - name: dags
+              mountPath: /dags
+            - name: script
+              mountPath: /scripts
+              readOnly: true
+            - name: scratch
+              mountPath: /scratch
+      volumes:
+        - name: dags
+          persistentVolumeClaim:
+            claimName: airflow-dags-source
+        - name: script
+          configMap:
+            name: airflow-dags-source-script
+        - name: scratch
+          emptyDir: {}

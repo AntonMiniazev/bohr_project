@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lakekeeper-db-create
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: createdb
+          image: {{ .Values.postgres.image | quote }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              if ! psql -h "$PGHOST" -U "$PGUSER" -d postgres -Atqc "SELECT 1 FROM pg_database WHERE datname = 'lakekeeper_db'" | grep -qx 1; then
+                createdb -h "$PGHOST" -U "$PGUSER" lakekeeper_db
+              fi
+              psql -h "$PGHOST" -U "$PGUSER" -d lakekeeper_db -Atqc 'SELECT current_database()'
+          env:
+            - name: PGHOST
+              value: {{ .Values.postgres.host | quote }}
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-env
+                  key: POSTGRES_USER
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-env
+                  key: POSTGRES_PASSWORD

@@ -19,13 +19,4 @@ grafana:
   nodeSelector:
     kubernetes.io/hostname: {{ .Environment.Values.monitoring.node }}
   ingress:
-    enabled: true
-    ingressClassName: {{ .Environment.Values.ingress.className }}
-    annotations:
-      cert-manager.io/cluster-issuer: {{ .Environment.Values.ingress.tls.caIssuerName }}
-    hosts:
-      - {{ .Environment.Values.ingress.hosts.grafana }}
-    tls:
-      - secretName: {{ .Environment.Values.ingress.tls.sharedSecret }}
-        hosts:
-          - {{ .Environment.Values.ingress.hosts.grafana }}
+    enabled: false

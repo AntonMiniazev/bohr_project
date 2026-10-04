@@ -1,0 +1,25 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: http-to-https
+  namespace: {{ .Values.gateway.namespace }}
+spec:
+  hostnames:
+    - {{ .Values.hosts.airflow | quote }}
+    - {{ .Values.hosts.minio | quote }}
+    - {{ .Values.hosts.minioS3 | quote }}
+    - {{ .Values.hosts.grafana | quote }}
+    - {{ .Values.hosts.ucatalog | quote }}
+    - {{ .Values.hosts.lakekeeper | quote }}
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+      sectionName: http
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            port: 443
+            # Gateway API v1.3 permits only 301 and 302 for RequestRedirect.
+            statusCode: 301

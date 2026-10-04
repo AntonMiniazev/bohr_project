@@ -39,7 +39,13 @@ EOF
 
 resource "null_resource" "cloudinit_tmp_cleanup" {
   triggers = {
-    always = timestamp()
+    cloudinit_path = "/tmp/terraform-provider-libvirt-cloudinit"
+  }
+
+  lifecycle {
+    # Cleanup runs during initial provisioning. Re-running it is not a reason
+    # to modify an established VM fleet.
+    ignore_changes = [triggers]
   }
 
   provisioner "local-exec" {
@@ -63,27 +69,27 @@ resource "libvirt_network" "ampere_net" {
     prefix  = 24
 
     dhcp = {
-          ranges = [{
-            start = var.network.dchp_addresses_range.dhcp_start
-            end   = var.network.dchp_addresses_range.dhcp_end
-          }]
-          hosts = concat(
-            [
-              {
-                mac  = var.fleet.control_plane.mac
-                ip   = var.fleet.control_plane.ip
-                name = var.fleet.control_plane.hostname
-              }
-            ],
-            [
-              for hostname, node in var.fleet.worker_nodes : {
-                mac  = node.mac
-                ip   = node.ip
-                name = hostname
-              }
-            ]
-          )
-        }
+      ranges = [{
+        start = var.network.dchp_addresses_range.dhcp_start
+        end   = var.network.dchp_addresses_range.dhcp_end
+      }]
+      hosts = concat(
+        [
+          {
+            mac  = var.fleet.control_plane.mac
+            ip   = var.fleet.control_plane.ip
+            name = var.fleet.control_plane.hostname
+          }
+        ],
+        [
+          for hostname, node in var.fleet.worker_nodes : {
+            mac  = node.mac
+            ip   = node.ip
+            name = hostname
+          }
+        ]
+      )
+    }
   }]
 }
 
@@ -120,30 +126,30 @@ locals {
   bootstrap_init_script = templatefile(
     "${path.module}/templates/bootstrap/bootstrap-init.sh.tpl",
     {
-      identity               = var.identity
-      network                = var.network
+      identity = var.identity
+      network  = var.network
     }
-  )  
+  )
 
   bootstrap_master_script = templatefile(
     "${path.module}/templates/bootstrap/bootstrap-k8s.sh.tpl",
     {
-      identity               = var.identity
-      control_plane          = var.fleet.control_plane
-      packages               = var.packages
+      identity      = var.identity
+      control_plane = var.fleet.control_plane
+      packages      = var.packages
     }
   )
 
   bootstrap_addons_script = templatefile(
     "${path.module}/templates/bootstrap/bootstrap-addons.sh.tpl",
     {
-      packages               = var.packages
-      identity               = var.identity
-      addons                 = var.addons
-      control_plane          = var.fleet.control_plane
-      network                = var.network
+      packages      = var.packages
+      identity      = var.identity
+      addons        = var.addons
+      control_plane = var.fleet.control_plane
+      network       = var.network
     }
-  )  
+  )
 
   control_plane_network_config = templatefile(
     "${path.module}/templates/bootstrap/netplan.yaml.tpl",
@@ -151,7 +157,7 @@ locals {
       network = var.network
       ip      = var.fleet.control_plane.ip
     }
-  )  
+  )
 
   worker_network_config = {
     for name, cfg in var.fleet.worker_nodes :
@@ -163,25 +169,25 @@ locals {
   }
 
 
-  local_path_configmap_yaml = indent(6, file("${path.module}/templates/bootstrap/k8s/local-path-configmap.yaml.tpl"))
+  local_path_configmap_yaml           = indent(6, file("${path.module}/templates/bootstrap/k8s/local-path-configmap.yaml.tpl"))
   local_path_shared_storageclass_yaml = indent(6, file("${path.module}/templates/bootstrap/k8s/local-path-shared-storageclass.yaml.tpl"))
-  kubeadm_init_indented = indent(6, local.kubeadm_init_raw)
-  bootstrap_init_script_indented = indent(6, local.bootstrap_init_script)
-  bootstrap_master_script_indented = indent(6, local.bootstrap_master_script)
-  bootstrap_addons_script_indented = indent(6, local.bootstrap_addons_script)
+  kubeadm_init_indented               = indent(6, local.kubeadm_init_raw)
+  bootstrap_init_script_indented      = indent(6, local.bootstrap_init_script)
+  bootstrap_master_script_indented    = indent(6, local.bootstrap_master_script)
+  bootstrap_addons_script_indented    = indent(6, local.bootstrap_addons_script)
   worker_user_data = {
     for name, cfg in var.fleet.worker_nodes :
     name => templatefile("${path.module}/templates/cloud-init/worker.tpl", {
-      hostname                = name
-      ssh                     = var.ssh
-      network                 = var.network
-      control_plane           = var.fleet.control_plane
-      join                    = var.join
-      registry                = var.registry
-      identity                = var.identity
-      packages                = var.packages
+      hostname      = name
+      ssh           = var.ssh
+      network       = var.network
+      control_plane = var.fleet.control_plane
+      join          = var.join
+      registry      = var.registry
+      identity      = var.identity
+      packages      = var.packages
     })
-  }  
+  }
 
 }
 
@@ -189,11 +195,11 @@ locals {
   cloudinit_cp = templatefile(
     "${path.module}/templates/cloud-init/control-plane.tpl",
     {
-      control_plane                          = var.fleet.control_plane
-      ssh                                    = var.ssh
-      join                                   = var.join
-      registry                               = var.registry
-      identity                               = var.identity
+      control_plane                           = var.fleet.control_plane
+      ssh                                     = var.ssh
+      join                                    = var.join
+      registry                                = var.registry
+      identity                                = var.identity
       kubeadm_init_indented                   = local.kubeadm_init_indented
       bootstrap_init_script_indented          = local.bootstrap_init_script_indented
       bootstrap_master_script_indented        = local.bootstrap_master_script_indented
@@ -210,10 +216,10 @@ locals {
 
 resource "libvirt_volume" "control_plane_disk" {
   depends_on = [null_resource.ampere_pool_path]
-  name           = "${var.fleet.control_plane.hostname}.qcow2"
-  pool           = libvirt_pool.ampere_pool.name
-  format         = "qcow2"
-  capacity       = var.fleet.control_plane.disk_gb * 1024 * 1024 * 1024
+  name       = "${var.fleet.control_plane.hostname}.qcow2"
+  pool       = libvirt_pool.ampere_pool.name
+  format     = "qcow2"
+  capacity   = var.fleet.control_plane.disk_gb * 1024 * 1024 * 1024
 
   backing_store = {
     path   = libvirt_volume.ubuntu_base.path
@@ -222,15 +228,21 @@ resource "libvirt_volume" "control_plane_disk" {
 }
 
 resource "libvirt_cloudinit_disk" "control_plane_seed" {
-  depends_on = [null_resource.cloudinit_tmp_cleanup]
+  depends_on     = [null_resource.cloudinit_tmp_cleanup]
   name           = "${var.fleet.control_plane.hostname}-seed.iso"
   user_data      = local.cloudinit_cp
   network_config = local.control_plane_network_config
 
-  meta_data      = yamlencode({
+  meta_data = yamlencode({
     "instance-id"    = var.fleet.control_plane.hostname
     "local-hostname" = var.fleet.control_plane.hostname
   })
+
+  lifecycle {
+    # Cloud-Init seed data is consumed on first boot. Replacing an attached
+    # seed cannot upgrade the running node and needlessly changes the domain.
+    ignore_changes = [user_data, network_config, meta_data]
+  }
 }
 
 
@@ -253,13 +265,13 @@ resource "null_resource" "cloudinit_persist" {
 }
 
 resource "libvirt_domain" "control_plane" {
-  name   = var.fleet.control_plane.hostname
-  memory = var.fleet.control_plane.memory
-  unit   = "MiB"
-  vcpu   = var.fleet.control_plane.vcpu
-  type   = "kvm"
+  name      = var.fleet.control_plane.hostname
+  memory    = var.fleet.control_plane.memory
+  unit      = "MiB"
+  vcpu      = var.fleet.control_plane.vcpu
+  type      = "kvm"
   running   = true
-  autostart = true  
+  autostart = true
 
   os = {
     type         = "hvm"
@@ -312,12 +324,12 @@ resource "null_resource" "wait_for_control_plane" {
 }
 
 resource "libvirt_volume" "worker_disk" {
-  for_each = var.fleet.worker_nodes
+  for_each   = var.fleet.worker_nodes
   depends_on = [null_resource.ampere_pool_path]
-  name           = "${each.key}.qcow2"
-  pool           = libvirt_pool.ampere_pool.name
-  format         = "qcow2"
-  capacity       = each.value.disk_gb * 1024 * 1024 * 1024
+  name       = "${each.key}.qcow2"
+  pool       = libvirt_pool.ampere_pool.name
+  format     = "qcow2"
+  capacity   = each.value.disk_gb * 1024 * 1024 * 1024
 
   backing_store = {
     path   = libvirt_volume.ubuntu_base.path
@@ -327,16 +339,22 @@ resource "libvirt_volume" "worker_disk" {
 
 resource "libvirt_cloudinit_disk" "worker_seed" {
   depends_on = [null_resource.cloudinit_tmp_cleanup]
-  for_each = var.fleet.worker_nodes
+  for_each   = var.fleet.worker_nodes
 
   name           = "${each.key}-seed.iso"
   user_data      = local.worker_user_data[each.key]
   network_config = local.worker_network_config[each.key]
 
-  meta_data      = yamlencode({
+  meta_data = yamlencode({
     "instance-id"    = each.key
     "local-hostname" = each.key
   })
+
+  lifecycle {
+    # Keep existing seed disks stable; newly created workers still receive the
+    # current templates during their initial provisioning.
+    ignore_changes = [user_data, network_config, meta_data]
+  }
 }
 
 resource "libvirt_domain" "worker" {

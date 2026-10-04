@@ -1,0 +1,5 @@
+apiVersion: v2
+name: airflow-dags-source
+description: Publish production and selected Iceberg DAGs from separate Git branches
+type: application
+version: 0.1.0

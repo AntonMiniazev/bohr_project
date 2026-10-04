@@ -1,0 +1,42 @@
+gateway:
+  name: {{ .Environment.Values.gateway.name }}
+  namespace: {{ .Environment.Values.gateway.namespace }}
+  httpsSectionName: https
+routes:
+  airflow:
+    namespace: {{ .Environment.Values.global.namespace }}
+    host: {{ .Environment.Values.gateway.hosts.airflow }}
+    service: airflow-api-server
+    port: 8080
+  minioConsole:
+    namespace: {{ .Environment.Values.global.namespace }}
+    host: {{ .Environment.Values.gateway.hosts.minio }}
+    service: minio
+    port: 9001
+  minioS3:
+    namespace: {{ .Environment.Values.global.namespace }}
+    host: {{ .Environment.Values.gateway.hosts.minioS3 }}
+    service: minio
+    port: 9000
+  grafana:
+    namespace: {{ .Environment.Values.monitoring.namespace }}
+    host: {{ .Environment.Values.gateway.hosts.grafana }}
+    service: kube-prometheus-stack-grafana
+    port: 80
+  sparkConnect:
+    namespace: {{ .Environment.Values.global.namespace }}
+    host: {{ .Environment.Values.gateway.hosts.sparkconnect }}
+    service: spark-connect
+    port: {{ .Environment.Values.sparkConnect.service.port }}
+  unityCatalog:
+    namespace: {{ .Environment.Values.unityCatalog.namespace }}
+    host: {{ .Environment.Values.gateway.hosts.ucatalog }}
+    service: unity-catalog-unitycatalog-server
+    port: 8080
+    uiService: unity-catalog-unitycatalog-ui
+    uiPort: 3000
+  lakekeeper:
+    namespace: {{ .Environment.Values.global.namespace }}
+    host: {{ .Environment.Values.gateway.hosts.lakekeeper }}
+    service: lakekeeper
+    port: 8181
