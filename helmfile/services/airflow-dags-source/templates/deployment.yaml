@@ -37,7 +37,7 @@ spec:
               value: "0"
           readinessProbe:
             exec:
-              command: ["/bin/sh", "-c", "test -f /dags/current/utils/ampere_dag_config.py && test -f /dags/current/my_dags/ampere__iceberg__bronze__raw_to_iceberg__daily.py && test -f /dags/current/my_dags/ampere__iceberg__silver_gold__dbt_duckdb__daily.py"]
+              command: ["/bin/sh", "-c", "test -f /dags/current/utils/ampere_dag_config.py && test -f /dags/current/my_dags/ampere__iceberg__bronze__raw_to_iceberg__daily.py && test -f /dags/current/my_dags/ampere__iceberg__silver_gold__dbt_duckdb__daily.py && test -f /dags/current/my_dags/ampere__curie__cache_refresh__post_iceberg_gold.py"]
             periodSeconds: 10
           resources:
             requests:

@@ -86,6 +86,8 @@ workers:
 config:
   core:
     dags_folder: /opt/airflow/dags/current
+  dag_processor:
+    refresh_interval: 60
   celery:
     worker_concurrency: 2
   logging:

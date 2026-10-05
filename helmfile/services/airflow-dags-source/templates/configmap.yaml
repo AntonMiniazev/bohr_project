@@ -13,7 +13,7 @@ data:
       git clone --quiet --depth 1 --single-branch --branch "$ICEBERG_BRANCH" "$REPOSITORY" /scratch/iceberg
       production_revision="$(git -C /scratch/production rev-parse --short=12 HEAD)"
       iceberg_revision="$(git -C /scratch/iceberg rev-parse --short=12 HEAD)"
-      revision="${production_revision}-${iceberg_revision}-classpath1"
+      revision="${production_revision}-${iceberg_revision}-classpath1-curie1"
       target="/dags/releases/${revision}"
       staging="/dags/releases/.${revision}.pending"
       if [ ! -d "$target" ]; then
@@ -22,6 +22,7 @@ data:
         cp -a /scratch/production/dags/. "$staging/"
         cp /scratch/iceberg/dags/my_dags/ampere__iceberg__bronze__raw_to_iceberg__daily.py "$staging/my_dags/"
         cp /scratch/iceberg/dags/my_dags/ampere__iceberg__silver_gold__dbt_duckdb__daily.py "$staging/my_dags/"
+        cp /scratch/iceberg/dags/my_dags/ampere__curie__cache_refresh__post_iceberg_gold.py "$staging/my_dags/"
         cp /scratch/iceberg/dags/sparkapplications/raw_to_bronze_template_iceberg.yaml "$staging/sparkapplications/"
         # This image runs as UID 185. spark.jars copies the bundled JARs into
         # root-owned /opt/spark/app; classpaths load them in place instead.
