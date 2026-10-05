@@ -25,6 +25,9 @@ spec:
 
               catalog = os.environ["CATALOG_URL"].rstrip("/")
               endpoint = os.environ["MINIO_ENDPOINT"].rstrip("/") + "/"
+              sts_endpoint = os.environ["MINIO_STS_ENDPOINT"].rstrip("/")
+              if sts_endpoint:
+                  sts_endpoint += "/"
               token_body = urllib.parse.urlencode({
                   "client_id": os.environ["LAKEKEEPER_CLIENT_ID"],
                   "client_secret": os.environ["LAKEKEEPER_CLIENT_SECRET"],
@@ -46,7 +49,7 @@ spec:
                   "aws-secret-access-key": os.environ["MINIO_SECRET_KEY"],
               }
 
-              for name in ("bronze", "silver", "gold"):
+              for name in os.environ["WAREHOUSE_NAMES"].split(","):
                   bucket = "ampere-iceberg-" + name
                   existing = current.get(name)
                   if existing is None:
@@ -56,6 +59,8 @@ spec:
                           "path-style-access": True, "sts-enabled": True,
                           "remote-signing-enabled": True,
                       }
+                      if sts_endpoint:
+                          profile["sts-endpoint"] = sts_endpoint
                       payload = {
                           "warehouse-name": name,
                           "storage-profile": profile,
@@ -67,12 +72,17 @@ spec:
                   else:
                       profile = existing["storage-profile"]
                       assert profile["bucket"] == bucket, f"{name}: unexpected bucket"
-                      assert profile["endpoint"].rstrip("/") == endpoint.rstrip("/"), f"{name}: unexpected endpoint"
                       assert profile["flavor"] == "s3-compat", f"{name}: unexpected storage flavor"
                       assert profile["path-style-access"] is True, f"{name}: path-style access disabled"
-                      if profile["sts-enabled"]:
-                          print(f"{name}: STS enabled, bucket={bucket}, endpoint={endpoint}")
+                      desired_sts_endpoint = sts_endpoint or profile.get("sts-endpoint")
+                      if (profile["sts-enabled"] and
+                          profile["endpoint"].rstrip("/") == endpoint.rstrip("/") and
+                          profile.get("sts-endpoint") == desired_sts_endpoint):
+                          print(f"{name}: already configured, bucket={bucket}, endpoint={endpoint}")
                           continue
+                      profile["endpoint"] = endpoint
+                      if sts_endpoint:
+                          profile["sts-endpoint"] = sts_endpoint
                       profile["sts-enabled"] = True
                       payload = {"storage-profile": profile, "storage-credential": credential}
                       url = base + "/" + existing["id"] + "/storage"
@@ -89,6 +99,10 @@ spec:
               value: {{ .Values.catalogUrl | quote }}
             - name: MINIO_ENDPOINT
               value: {{ .Values.minioEndpoint | quote }}
+            - name: MINIO_STS_ENDPOINT
+              value: {{ .Values.minioStsEndpoint | quote }}
+            - name: WAREHOUSE_NAMES
+              value: {{ .Values.warehouseNames | quote }}
             - name: OAUTH_URL
               value: {{ .Values.oauthUrl | quote }}
             - name: OAUTH_SCOPE

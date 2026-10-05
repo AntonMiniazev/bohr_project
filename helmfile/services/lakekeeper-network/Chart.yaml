@@ -1,0 +1,4 @@
+apiVersion: v2
+name: lakekeeper-network
+version: 0.1.0
+description: Resolve the browser-accessible MinIO endpoint and distribute the local CA

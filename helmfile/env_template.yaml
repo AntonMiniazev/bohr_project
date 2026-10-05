@@ -153,7 +153,7 @@ minio:
   release: RELEASE.2025-09-07T16-13-09Z-cpuv1
   s3_endpoint: "s3.minio.local"
   server_url: "https://s3.minio.local"
-  repo: quay.io/minio/minio
+  repo: ghcr.io/antonminiazev/bohr-minio
 
 postgresql:
   host: postgres-service

@@ -1,0 +1,88 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lakekeeper-network-reconcile
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 180
+  template:
+    spec:
+      serviceAccountName: lakekeeper-network-reconcile
+      restartPolicy: OnFailure
+      containers:
+        - name: reconcile
+          image: python:3.12-alpine
+          command: [python, -c]
+          args:
+            - |
+              import base64
+              import json
+              import os
+              import ssl
+              import urllib.error
+              import urllib.request
+
+              api = "https://kubernetes.default.svc"
+              token = open("/var/run/secrets/kubernetes.io/serviceaccount/token").read()
+              context = ssl.create_default_context(
+                  cafile="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+              )
+
+              def request(method, path, payload=None):
+                  body = None if payload is None else json.dumps(payload).encode()
+                  headers = {"Authorization": "Bearer " + token}
+                  if body is not None:
+                      headers["Content-Type"] = (
+                          "application/merge-patch+json" if method == "PATCH" else "application/json"
+                      )
+                  req = urllib.request.Request(api + path, data=body, headers=headers, method=method)
+                  with urllib.request.urlopen(req, context=context, timeout=20) as response:
+                      return json.load(response)
+
+              host = os.environ["S3_HOST"]
+              router_dns_ip = os.environ["ROUTER_DNS_IP"]
+              block = host + ":53 {\n    forward . " + router_dns_ip + "\n}\n"
+              core_path = "/api/v1/namespaces/kube-system/configmaps/coredns"
+              corefile = request("GET", core_path)["data"]["Corefile"]
+              if block not in corefile:
+                  if f"{host}:53" in corefile:
+                      raise RuntimeError(f"CoreDNS has a conflicting {host} zone")
+                  request("PATCH", core_path, {"data": {"Corefile": corefile.rstrip() + "\n" + block}})
+                  print(f"CoreDNS forwards {host} to {router_dns_ip}")
+              else:
+                  print(f"CoreDNS already forwards {host} to {router_dns_ip}")
+
+              source = request("GET", "/api/v1/namespaces/cert-manager/secrets/local-ca")
+              cert = base64.b64decode(source["data"]["tls.crt"]).decode()
+              if "-----BEGIN CERTIFICATE-----" not in cert:
+                  raise RuntimeError("local-ca secret has no PEM certificate")
+              namespace = os.environ["POD_NAMESPACE"]
+              target_path = f"/api/v1/namespaces/{namespace}/configmaps/local-ca-public"
+              try:
+                  current = request("GET", target_path)
+              except urllib.error.HTTPError as error:
+                  if error.code != 404:
+                      raise
+                  request("POST", f"/api/v1/namespaces/{namespace}/configmaps", {
+                      "apiVersion": "v1", "kind": "ConfigMap",
+                      "metadata": {"name": "local-ca-public"}, "data": {"ca.crt": cert},
+                  })
+                  print("Created public local CA ConfigMap")
+              else:
+                  if current.get("data", {}).get("ca.crt") != cert:
+                      request("PATCH", target_path, {"data": {"ca.crt": cert}})
+                      print("Updated public local CA ConfigMap")
+                  else:
+                      print("Public local CA ConfigMap is current")
+          env:
+            - name: S3_HOST
+              value: {{ .Values.s3Host | quote }}
+            - name: ROUTER_DNS_IP
+              value: {{ .Values.routerDnsIp | quote }}
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace

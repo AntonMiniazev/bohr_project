@@ -227,6 +227,17 @@ releases:
       - ampere/postgresql
       - ampere/minio
 
+  - name: lakekeeper-network
+    chart: ./services/lakekeeper-network
+    namespace: ampere
+    labels:
+      app: lakekeeper
+      tier: governance
+    values:
+      - services/lakekeeper-network/values.yaml.gotmpl
+    needs:
+      - ampere/ingress-resources
+
   - name: lakekeeper
     chart: lakekeeper/lakekeeper
     version: 0.12.0
@@ -238,6 +249,7 @@ releases:
       - services/lakekeeper/lakekeeper.values.yaml.gotmpl
     needs:
       - ampere/lakekeeper-prereqs
+      - ampere/lakekeeper-network
 
   - name: lakekeeper-warehouses
     chart: ./services/lakekeeper-warehouses

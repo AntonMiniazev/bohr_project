@@ -3,6 +3,8 @@ replicaCount: 1
 image:
   repository: {{ .Environment.Values.minio.repo }}
   tag: {{ .Environment.Values.minio.release }}
+imagePullSecrets:
+  - name: ghcr-pull
 service:
   type: ClusterIP
   ports:

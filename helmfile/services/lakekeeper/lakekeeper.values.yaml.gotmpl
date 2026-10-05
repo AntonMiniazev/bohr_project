@@ -24,6 +24,32 @@ catalog:
       memory: 1Gi
   config:
     LAKEKEEPER__UI__LAKEKEEPER_URL: https://{{ .Environment.Values.gateway.hosts.lakekeeper }}
+  extraEnv:
+    - name: SSL_CERT_FILE
+      value: /etc/ampere-ca-bundle/ca.crt
+  extraInitContainers:
+    - name: combine-ca-bundle
+      image: python:3.12-alpine
+      command: [sh, -ec]
+      args:
+        - |
+          cat /etc/ssl/certs/ca-certificates.crt /etc/ampere-local-ca/ca.crt > /etc/ampere-ca-bundle/ca.crt
+      volumeMounts:
+        - name: local-ca-public
+          mountPath: /etc/ampere-local-ca
+          readOnly: true
+        - name: combined-ca-bundle
+          mountPath: /etc/ampere-ca-bundle
+  extraVolumeMounts:
+    - name: combined-ca-bundle
+      mountPath: /etc/ampere-ca-bundle
+      readOnly: true
+  extraVolumes:
+    - name: local-ca-public
+      configMap:
+        name: local-ca-public
+    - name: combined-ca-bundle
+      emptyDir: {}
 {{- if .Environment.Values.lakekeeper.auth.enabled }}
 auth:
   oauth2:

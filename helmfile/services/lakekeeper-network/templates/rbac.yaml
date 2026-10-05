@@ -1,0 +1,71 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lakekeeper-network-coredns
+  namespace: kube-system
+rules:
+  - apiGroups: [""]
+    resources: [configmaps]
+    resourceNames: [coredns]
+    verbs: [get, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lakekeeper-network-coredns
+  namespace: kube-system
+subjects:
+  - kind: ServiceAccount
+    name: lakekeeper-network-reconcile
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: lakekeeper-network-coredns
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lakekeeper-network-ca
+  namespace: cert-manager
+rules:
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames: [local-ca]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lakekeeper-network-ca
+  namespace: cert-manager
+subjects:
+  - kind: ServiceAccount
+    name: lakekeeper-network-reconcile
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: lakekeeper-network-ca
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lakekeeper-network-configmap
+rules:
+  - apiGroups: [""]
+    resources: [configmaps]
+    verbs: [get, create, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lakekeeper-network-configmap
+subjects:
+  - kind: ServiceAccount
+    name: lakekeeper-network-reconcile
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: lakekeeper-network-configmap
+  apiGroup: rbac.authorization.k8s.io
