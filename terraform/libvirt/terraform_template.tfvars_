@@ -94,7 +94,7 @@ fleet = {
     "WORKER_NODE_2" = {
       memory  = 4096
       vcpu    = 2
-      disk_gb = 60
+      disk_gb = 100
       ip      = "192.168.11.102"
       mac     = "02:28:A7:6C:33:8D"
     }

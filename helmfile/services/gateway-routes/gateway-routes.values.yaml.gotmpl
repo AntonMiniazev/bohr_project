@@ -33,8 +33,6 @@ routes:
     host: {{ .Environment.Values.gateway.hosts.ucatalog }}
     service: unity-catalog-unitycatalog-server
     port: 8080
-    uiService: unity-catalog-unitycatalog-ui
-    uiPort: 3000
   lakekeeper:
     namespace: {{ .Environment.Values.global.namespace }}
     host: {{ .Environment.Values.gateway.hosts.lakekeeper }}

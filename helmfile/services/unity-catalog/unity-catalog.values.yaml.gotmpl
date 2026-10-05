@@ -58,7 +58,7 @@ server:
         memory: {{ .Environment.Values.unityCatalog.resources.server.limits.memory | quote }}
 
 ui:
-  enabled: true
+  enabled: false
   proxyApiRequests: false
   deployment:
     image:

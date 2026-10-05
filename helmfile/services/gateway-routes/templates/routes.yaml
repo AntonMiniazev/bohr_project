@@ -44,13 +44,6 @@ spec:
       backendRefs:
         - name: {{ .Values.routes.unityCatalog.service }}
           port: {{ .Values.routes.unityCatalog.port }}
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: {{ .Values.routes.unityCatalog.uiService }}
-          port: {{ .Values.routes.unityCatalog.uiPort }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: GRPCRoute
