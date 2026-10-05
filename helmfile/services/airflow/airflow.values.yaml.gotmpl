@@ -20,16 +20,8 @@ data:
 env:
   - name: PYTHONPATH
     value: "/opt/airflow/dags/current"
-  - name: AIRFLOW_VAR_ICEBERG_SPARK_IMAGE
-    value: "ghcr.io/antonminiazev/ampere-spark-iceberg:sha-428c77b01edea2ebd9d207f13d0dc27b60e03867"
-  - name: AIRFLOW_VAR_ICEBERG_DBT_IMAGE
-    value: "ghcr.io/antonminiazev/ampere-dbt-iceberg:sha-cd89ec4219cc512365f464dd577024f51bf2b67d"
-  - name: AIRFLOW_VAR_ICEBERG_BRONZE_WAREHOUSE
-    value: bronze
-  - name: AIRFLOW_VAR_ICEBERG_SILVER_WAREHOUSE
-    value: silver
-  - name: AIRFLOW_VAR_ICEBERG_GOLD_WAREHOUSE
-    value: gold
+  # Iceberg image and warehouse Variables are managed in Airflow Admin > Variables.
+  # Keep AIRFLOW_VAR_ICEBERG_* out of this list so UI values take effect.
   - name: AIRFLOW__PROVIDERS_ODBC__ALLOW_DRIVER_IN_EXTRA
     value: "true"
   - name: AIRFLOW__LOGGING__REMOTE_LOGGING
