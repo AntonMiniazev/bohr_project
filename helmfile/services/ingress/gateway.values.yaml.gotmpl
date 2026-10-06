@@ -11,7 +11,6 @@ hosts:
   minioS3: {{ .Environment.Values.gateway.hosts.minioS3 }}
   grafana: {{ .Environment.Values.gateway.hosts.grafana }}
   sparkconnect: {{ .Environment.Values.gateway.hosts.sparkconnect }}
-  ucatalog: {{ .Environment.Values.gateway.hosts.ucatalog }}
   lakekeeper: {{ .Environment.Values.gateway.hosts.lakekeeper }}
 tls:
   caIssuerName: {{ .Environment.Values.gateway.tls.caIssuerName }}

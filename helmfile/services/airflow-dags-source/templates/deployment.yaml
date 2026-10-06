@@ -29,8 +29,6 @@ spec:
               value: {{ .Values.repository | quote }}
             - name: PRODUCTION_BRANCH
               value: {{ .Values.productionBranch | quote }}
-            - name: ICEBERG_BRANCH
-              value: {{ .Values.icebergBranch | quote }}
             - name: SYNC_INTERVAL_SECONDS
               value: {{ .Values.syncIntervalSeconds | quote }}
             - name: GIT_TERMINAL_PROMPT

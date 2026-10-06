@@ -9,7 +9,6 @@ spec:
     - {{ .Values.hosts.minio | quote }}
     - {{ .Values.hosts.minioS3 | quote }}
     - {{ .Values.hosts.grafana | quote }}
-    - {{ .Values.hosts.ucatalog | quote }}
     - {{ .Values.hosts.lakekeeper | quote }}
   parentRefs:
     - name: {{ .Values.gateway.name }}

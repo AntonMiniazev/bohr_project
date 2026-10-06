@@ -1,6 +1,6 @@
 # Helmfile: Cluster Services Deployment
 
-This Helmfile configuration deploys platform services into the Kubernetes cluster after the control plane and workers are ready. It installs cert-manager, Cilium Gateway API resources, External Secrets Operator, KEDA, Spark Operator, monitoring, PostgreSQL, MinIO, Airflow, Spark Connect, and Unity Catalog OSS, with secrets managed by SOPS and Azure Key Vault.
+This Helmfile configuration deploys the Iceberg platform after the control plane and workers are ready. It installs cert-manager, Cilium Gateway API resources, External Secrets Operator, KEDA, Spark Operator, monitoring, PostgreSQL, MinIO, Airflow, Spark Connect, and Lakekeeper, with secrets managed by SOPS and Azure Key Vault.
 
 Guide
 - [Helmfile: Cluster Services Deployment](#helmfile-cluster-services-deployment)
@@ -39,7 +39,6 @@ Namespaces
 - `monitoring`: Prometheus and Grafana monitoring stack.
 - `spark-operator`: Spark Operator control plane.
 - `ampere`: application workloads (PostgreSQL, MinIO, Airflow) and HTTPRoutes.
-- `unity-catalog`: Unity Catalog server and UI.
 
 Services and roles
 - [cert-manager](https://cert-manager.io/) (jetstack chart): issues the shared TLS certificate used by the Gateway.
@@ -51,13 +50,14 @@ Services and roles
 - [Ivy cache](services/ivy-cache) (custom chart): shared PVC for Spark JAR dependencies, mountable by Spark driver/executor pods.
 - [Airflow Spark RBAC](services/airflow-spark-rbac) (custom chart): grants the Airflow worker service account permissions to create SparkApplication CRs.
 - [Gateway resources](services/ingress) (custom chart): shared Gateway listeners, local CA certificates, and internal TLS configuration.
-- [Gateway routes](services/gateway-routes) (custom chart): HTTPRoutes for Airflow, MinIO, Grafana, and Unity Catalog.
+- [Gateway routes](services/gateway-routes) (custom chart): HTTPRoutes for Airflow, MinIO, Grafana, and Lakekeeper, plus the Spark Connect GRPCRoute.
 - [PostgreSQL](services/postgresql) (custom chart): metadata and operational databases for Airflow and application workloads, exposed through a dedicated NodePort and the Ubuntu host TCP proxy.
 - [MinIO](services/minio) (custom chart): S3-compatible object storage.
 - [Airflow](https://airflow.apache.org/docs/helm-chart/1.18.0/) (apache-airflow chart): orchestration for pipelines and DAG execution.
 - [KEDA](https://github.com/kedacore/charts) (kedacore chart): event-driven autoscaling for Airflow workers.
 - [Spark Connect](services/spark-connect) (custom chart): Spark Connect endpoint for remote notebooks/clients.
-- [Unity Catalog OSS](services/unity-catalog) (custom chart): metadata governance API and web UI.
+- [Lakekeeper](services/lakekeeper) (official chart): Iceberg REST catalog and web UI, backed by PostgreSQL and MinIO.
+- [Airflow DAG source](services/airflow-dags-source) (custom chart): publishes the complete `main` branch DAG tree every 60 seconds.
 
 Versions (current defaults)
 - cert-manager chart `1.21.1`: [`helmfile.yaml`](helmfile.yaml)
@@ -90,7 +90,7 @@ Configuration inputs
 - Service values and charts: [`services/`](services/)
   - PostgreSQL allowlist CIDRs are defined under `postgresql.access.allowedCidrs`.
   - PostgreSQL TLS can be toggled with `postgresql.tls.enabled` (disabled by default).
-  - ingress-nginx TCP NodePort is set with `ingress.controller.tcpNodePorts.postgres`.
+  - PostgreSQL uses `postgresql.service.nodePort`; `oppie-server` forwards TCP traffic to that NodePort.
   - Helm installs are atomic with cleanup-on-fail enabled by default.
   - Spark Operator job namespaces are defined under `spark.jobNamespaces`.
   - Ivy cache settings (PVC size, mount path, node) are defined under `ivyCache.*`.
@@ -106,9 +106,9 @@ Configuration inputs
 3) Deploy all services
 ```bash
 cd helmfile
-helmfile -e [NAMESPACE] apply --skip-diff-on-install
+helmfile -e ampere apply --skip-diff-on-install
 ```
-Use the environment name defined in [`environments.yaml`](environments.yaml).
+The `ampere` environment is defined in [`environments.yaml`](environments.yaml).
 
 Files to review
 - [`helmfile.yaml`](helmfile.yaml)
@@ -121,4 +121,5 @@ Files to review
 - [`services/keda`](services/keda)
 - [`services/external-secrets`](services/external-secrets)
 - [`services/spark-connect`](services/spark-connect)
-- [`services/unity-catalog`](services/unity-catalog)
+- [`services/lakekeeper`](services/lakekeeper)
+- [`services/airflow-dags-source`](services/airflow-dags-source)

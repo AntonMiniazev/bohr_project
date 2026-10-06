@@ -8,39 +8,22 @@ data:
     set -eu
     apk add --no-cache git coreutils
     while :; do
-      rm -rf /scratch/production /scratch/iceberg
-      git clone --quiet --depth 1 --single-branch --branch "$PRODUCTION_BRANCH" "$REPOSITORY" /scratch/production
-      git clone --quiet --depth 1 --single-branch --branch "$ICEBERG_BRANCH" "$REPOSITORY" /scratch/iceberg
-      production_revision="$(git -C /scratch/production rev-parse --short=12 HEAD)"
-      iceberg_revision="$(git -C /scratch/iceberg rev-parse --short=12 HEAD)"
-      revision="${production_revision}-${iceberg_revision}-classpath1-curie3"
+      rm -rf /scratch/source
+      git clone --quiet --depth 1 --single-branch --branch "$PRODUCTION_BRANCH" "$REPOSITORY" /scratch/source
+      source_revision="$(git -C /scratch/source rev-parse --short=12 HEAD)"
+      revision="${source_revision}-main1"
       target="/dags/releases/${revision}"
       staging="/dags/releases/.${revision}.pending"
       if [ ! -d "$target" ]; then
         rm -rf "$staging"
         mkdir -p "$staging"
-        cp -a /scratch/production/dags/. "$staging/"
-        cp -a /scratch/iceberg/dags/. "$staging/"
-        # This image runs as UID 185. spark.jars copies the bundled JARs into
-        # root-owned /opt/spark/app; classpaths load them in place instead.
-        iceberg_template="$staging/sparkapplications/raw_to_bronze_template_iceberg.yaml"
-        if grep -q '^    spark.jars:' "$iceberg_template"; then
-          awk '
-            /^    spark.jars:/ {
-              print "    spark.driver.extraClassPath: \"/opt/spark/iceberg-jars/*\""
-              print "    spark.executor.extraClassPath: \"/opt/spark/iceberg-jars/*\""
-              next
-            }
-            { print }
-          ' "$iceberg_template" > "$iceberg_template.tmp"
-          mv "$iceberg_template.tmp" "$iceberg_template"
-        fi
+        cp -a /scratch/source/dags/. "$staging/"
         mv -T "$staging" "$target"
       fi
       rm -f /dags/current.next
       ln -s "releases/${revision}" /dags/current.next
       mv -Tf /dags/current.next /dags/current
-      echo "Published Airflow DAG revisions production=${production_revision} iceberg=${iceberg_revision}"
-      rm -rf /scratch/production /scratch/iceberg
+      echo "Published Airflow DAG revision ${source_revision}"
+      rm -rf /scratch/source
       sleep "$SYNC_INTERVAL_SECONDS"
     done

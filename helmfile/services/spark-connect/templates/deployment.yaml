@@ -27,6 +27,16 @@ spec:
           env:
             - name: SPARK_NO_DAEMONIZE
               value: "true"
+            - name: LAKEKEEPER_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.sparkConnect.lakekeeper.clientSecretName }}
+                  key: client-id
+            - name: LAKEKEEPER_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.sparkConnect.lakekeeper.clientSecretName }}
+                  key: client-secret
           envFrom:
             - secretRef:
                 name: {{ .Values.sparkConnect.minio.secretName }}
@@ -43,12 +53,20 @@ spec:
               spark.connect.grpc.binding.address 0.0.0.0
               spark.driver.memory                4g
               spark.ui.enabled                   false
-              spark.sql.extensions               io.delta.sql.DeltaSparkSessionExtension
-              spark.sql.catalog.spark_catalog    org.apache.spark.sql.delta.catalog.DeltaCatalog
-              spark.sql.catalog.{{ .Values.sparkConnect.uc.catalog }}           io.unitycatalog.spark.UCSingleCatalog
-              spark.sql.catalog.{{ .Values.sparkConnect.uc.catalog }}.uri       {{ .Values.sparkConnect.uc.uri }}
-              spark.sql.catalog.{{ .Values.sparkConnect.uc.catalog }}.auth.type {{ .Values.sparkConnect.uc.authType }}
-              spark.sql.catalog.{{ .Values.sparkConnect.uc.catalog }}.auth.token {{ .Values.sparkConnect.uc.authToken }}
+              spark.sql.extensions               org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+              {{- range .Values.sparkConnect.lakekeeper.catalogs }}
+              spark.sql.catalog.{{ .name }}           org.apache.iceberg.spark.SparkCatalog
+              spark.sql.catalog.{{ .name }}.type      rest
+              spark.sql.catalog.{{ .name }}.uri       {{ $.Values.sparkConnect.lakekeeper.uri }}
+              spark.sql.catalog.{{ .name }}.warehouse {{ .warehouse }}
+              spark.sql.catalog.{{ .name }}.rest.auth.type oauth2
+              spark.sql.catalog.{{ .name }}.credential ${LAKEKEEPER_CLIENT_ID}:${LAKEKEEPER_CLIENT_SECRET}
+              spark.sql.catalog.{{ .name }}.oauth2-server-uri {{ $.Values.sparkConnect.lakekeeper.oauthUri }}
+              spark.sql.catalog.{{ .name }}.scope     {{ $.Values.sparkConnect.lakekeeper.scope }}
+              spark.sql.catalog.{{ .name }}.token-exchange-enabled false
+              spark.sql.catalog.{{ .name }}.header.X-Iceberg-Access-Delegation client-managed
+              spark.sql.catalog.{{ .name }}.io-impl   org.apache.iceberg.hadoop.HadoopFileIO
+              {{- end }}
               spark.hadoop.fs.s3a.endpoint       {{ .Values.sparkConnect.minio.endpoint }}
               spark.hadoop.fs.s3a.path.style.access {{ .Values.sparkConnect.minio.pathStyle }}
               spark.hadoop.fs.s3a.connection.ssl.enabled {{ .Values.sparkConnect.minio.ssl }}
@@ -81,10 +99,10 @@ spec:
               {{- end }}
               spark.hadoop.fs.AbstractFileSystem.s3.impl org.apache.hadoop.fs.s3a.S3A
               {{ if .Values.sparkConnect.ivy.enabled }}
-              spark.jars                         local:///opt/spark/ivy/hadoop-aws-3.4.1.jar,local:///opt/spark/ivy/bundle-2.24.6.jar,local:///opt/spark/ivy/delta-spark_2.13-4.2.0.jar,local:///opt/spark/ivy/delta-storage-4.2.0.jar,local:///opt/spark/ivy/unitycatalog-spark_2.13-0.4.1.jar,local:///opt/spark/ivy/unitycatalog-client-0.4.1.jar
+              spark.jars                         local:///opt/spark/ivy/hadoop-aws-3.4.1.jar,local:///opt/spark/ivy/bundle-2.35.4.jar,local:///opt/spark/ivy/iceberg-spark-runtime-4.1_2.13-1.12.0.jar
               spark.jars.ivy                     {{ .Values.sparkConnect.ivy.mountPath }}
               {{ else }}
-              spark.jars.packages                io.delta:delta-spark_2.13:4.2.0,io.delta:delta-storage:4.2.0,org.apache.hadoop:hadoop-aws:3.4.1,software.amazon.awssdk:bundle:2.24.6,io.unitycatalog:unitycatalog-spark_2.13:0.4.1,io.unitycatalog:unitycatalog-client:0.4.1
+              spark.jars.packages                org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0,org.apache.hadoop:hadoop-aws:3.4.1,software.amazon.awssdk:bundle:2.35.4
               {{ end }}
               EOF
               exec /opt/spark/sbin/start-connect-server.sh

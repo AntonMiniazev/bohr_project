@@ -28,11 +28,6 @@ routes:
     host: {{ .Environment.Values.gateway.hosts.sparkconnect }}
     service: spark-connect
     port: {{ .Environment.Values.sparkConnect.service.port }}
-  unityCatalog:
-    namespace: {{ .Environment.Values.unityCatalog.namespace }}
-    host: {{ .Environment.Values.gateway.hosts.ucatalog }}
-    service: unity-catalog-unitycatalog-server
-    port: 8080
   lakekeeper:
     namespace: {{ .Environment.Values.global.namespace }}
     host: {{ .Environment.Values.gateway.hosts.lakekeeper }}

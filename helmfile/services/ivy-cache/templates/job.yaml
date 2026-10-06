@@ -34,7 +34,9 @@ spec:
               mkdir -p {{ .Values.ivyCache.mountPath }}
               {{- range $url := .Values.ivyCache.bootstrap.urls }}
               echo "Downloading {{ $url }}"
-              curl -fsSL "{{ $url }}" -o "{{ $.Values.ivyCache.mountPath }}/{{ base $url }}"
+              target="{{ $.Values.ivyCache.mountPath }}/{{ base $url }}"
+              curl -fsSL "{{ $url }}" -o "$target.pending"
+              mv -f "$target.pending" "$target"
               {{- end }}
           volumeMounts:
             - name: ivy-cache

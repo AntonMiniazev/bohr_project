@@ -11,7 +11,6 @@ spec:
     - {{ .Values.hosts.minio | quote }}
     - {{ .Values.hosts.grafana | quote }}
     - {{ .Values.hosts.sparkconnect | quote }}
-    - {{ .Values.hosts.ucatalog | quote }}
     - {{ .Values.hosts.lakekeeper | quote }}
 {{- if .Values.hosts.minioS3 }}
     - {{ .Values.hosts.minioS3 | quote }}

@@ -1,6 +1,5 @@
 repository: {{ .Environment.Values.airflow.gitRepo | quote }}
 productionBranch: main
-icebergBranch: migration/iceberg
 image: alpine:3.21
 storageClass: {{ .Environment.Values.ivyCacheNfs.storageClass }}
 node: {{ .Environment.Values.airflow.node }}

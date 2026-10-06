@@ -21,13 +21,13 @@ System_Boundary(cloud, "Public Cloud / Hetzner") {
 Rel(dev, git, "Pushes IaC and images", "Git/CI")
 Rel(dev, kvm, "Runs Terraform and manages VMs", "SSH")
 Rel(dev, homek8s, "Applies Helmfile releases", "kubectl/Helmfile")
-Rel(dev, homek8s, "Accesses internal services", "airflow.local, minio.local, sparkconnect.local, ucatalog.local")
+Rel(dev, homek8s, "Accesses internal services", "airflow.local, minio.local, sparkconnect.local, lakekeeper.local")
 Rel(dev, keyvault, "Manages keys and access", "Azure")
 Rel(homek8s, keyvault, "Decrypts and syncs secrets", "SOPS/ESO")
 Rel(homek8s, git, "Pulls container images", "Registry")
 Rel(hetzner, git, "Pulls Curie images and deployment files", "GitHub Actions/Registry")
 Rel(hetzner, curieDocker, "Runs application containers", "Docker Compose")
-Rel(curieDocker, homek8s, "Reads governed Gold data through internal endpoints", "UC/MinIO")
+Rel(curieDocker, homek8s, "Refreshes from Iceberg Gold", "Lakekeeper/MinIO")
 
 SHOW_LEGEND()
 @enduml

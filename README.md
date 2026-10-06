@@ -1,5 +1,5 @@
 ## Overview
-This repository is a sandbox for provisioning a KVM/libvirt VM fleet and deploying a Kubernetes-based data platform. It uses Terraform + Cloud-Init for VM bootstrap, kubeadm for cluster initialization, and Helmfile to deploy infrastructure services and workloads (cert-manager, ingress-nginx, External Secrets Operator, PostgreSQL, MinIO, Airflow, Spark Operator, Spark Connect, KEDA, Prometheus/Grafana, Unity Catalog OSS). Services are exposed through ingress routes and TCP forwarding for internal access.
+This repository provisions a KVM/libvirt VM fleet and an Iceberg data platform on Kubernetes. Terraform and Cloud-Init bootstrap the VMs; Helmfile deploys Cilium Gateway, cert-manager, External Secrets Operator, PostgreSQL, MinIO, Airflow, Spark Operator, Spark Connect, Lakekeeper, KEDA, and Prometheus/Grafana. PostgreSQL stores application and Lakekeeper metadata; MinIO stores Iceberg data. Services use Gateway API routes and TCP forwarding for internal access.
 
 ## Repository layout
 - [`terraform/`](terraform/) VM provisioning with libvirt, Cloud-Init, and kubeadm.
@@ -25,7 +25,7 @@ This repository is a sandbox for provisioning a KVM/libvirt VM fleet and deployi
 - Step 2: Core platform services via Helmfile completed.
 - Step 5: CI/CD image build and push automation completed.
 - Step 6: Spark Connect deployment completed (`sparkconnect.local`).
-- Step 7: Unity Catalog OSS deployment completed (`ucatalog.local`).
+- Step 7: Lakekeeper Iceberg catalog deployed (`lakekeeper.local`).
 - Step 3 and Step 4 remain postponed (public API cluster and custom image refactor rollout).
 
 ## Access endpoints (home Wi-Fi DNS)
@@ -33,7 +33,7 @@ This repository is a sandbox for provisioning a KVM/libvirt VM fleet and deployi
 - `minio.local`
 - `s3.minio.local`
 - `sparkconnect.local`
-- `ucatalog.local`
+- `lakekeeper.local`
 
 ## Secrets
 Secrets are stored encrypted with SOPS + Azure Key Vault. Use the credential templates under [`helmfile/services`](helmfile/services) and the Terraform variables template [`terraform/libvirt/terraform_template.tfvars_`](terraform/libvirt/terraform_template.tfvars_) to create new values before encrypting them.

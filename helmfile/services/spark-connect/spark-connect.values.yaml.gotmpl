@@ -19,15 +19,21 @@ sparkConnect:
     ssl: {{ .Environment.Values.sparkConnect.minio.ssl }}
     secretName: {{ .Environment.Values.sparkConnect.minio.secretName }}
     buckets:
-{{- $bucketPaths := .Environment.Values.unityCatalog.storage.bucketPaths | default (list .Environment.Values.unityCatalog.storage.modelRoot) -}}
-{{- range $path := $bucketPaths }}
-      - {{ regexReplaceAll "^s3a?://([^/]+).*$" $path "${1}" | quote }}
+{{- range .Environment.Values.sparkConnect.minio.buckets }}
+      - {{ . | quote }}
 {{- end }}
-  uc:
-    catalog: {{ .Environment.Values.global.projectName | quote }}
-    uri: {{ printf "http://unity-catalog-unitycatalog-server.%s.svc.cluster.local:8080" .Environment.Values.unityCatalog.namespace | quote }}
-    authType: static
-    authToken: {{ .Environment.Values.unityCatalog.apiToken | quote }}
+  lakekeeper:
+    uri: http://lakekeeper.ampere.svc.cluster.local:8181/catalog
+    oauthUri: https://login.microsoftonline.com/{{ .Environment.Values.lakekeeper.auth.tenantId }}/oauth2/v2.0/token
+    scope: api://{{ .Environment.Values.lakekeeper.auth.apiClientId }}/.default
+    clientSecretName: lakekeeper-spark-client
+    catalogs:
+      - name: iceberg_bronze
+        warehouse: bronze
+      - name: iceberg_silver
+        warehouse: silver
+      - name: iceberg_gold
+        warehouse: gold
   ivy:
     enabled: {{ .Environment.Values.sparkConnect.ivy.enabled | default true }}
     mountPath: {{ .Environment.Values.sparkConnect.ivy.mountPath }}
