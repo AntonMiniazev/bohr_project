@@ -124,7 +124,6 @@ func initialize(ctx context.Context, cfg config) (*sql.DB, *sql.Conn, error) {
 		fmt.Sprintf("CREATE SECRET flight_lakekeeper (TYPE ICEBERG, CLIENT_ID %s, CLIENT_SECRET %s, OAUTH2_SERVER_URI %s, OAUTH2_SCOPE %s, ENDPOINT %s)", quoted(cfg.clientID), quoted(cfg.clientSecret), quoted(cfg.oauthURI), quoted(cfg.oauthScope), quoted(cfg.catalogURI)),
 		fmt.Sprintf("ATTACH %s AS iceberg_gold (TYPE ICEBERG, READ_ONLY)", quoted(cfg.warehouse)),
 		"SET lock_configuration = true",
-		"SELECT * FROM iceberg_gold.gold.fct_orders_sales LIMIT 0",
 	)
 	for index, statement := range statements {
 		if _, err := conn.ExecContext(ctx, statement); err != nil {
