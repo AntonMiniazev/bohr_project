@@ -7,6 +7,7 @@ Person(dev, "Developer", "Runs Terraform and Helmfile deployments")
 
 System_Ext(keyvault, "Azure Key Vault", "KMS for SOPS encryption keys")
 System_Ext(registry, "Container Registry", "Stores service images")
+System_Ext(curie, "Curie server", "Uses official ADBC Flight SQL client for cache refresh")
 
 System_Boundary(tooling, "Deployment Tooling") {
     Container(helmfile, "Helmfile + SOPS", "CLI", "Applies Helm charts and decrypts secrets")
@@ -17,6 +18,7 @@ System_Boundary(home, "Home Lab") {
     Container(oppie, "oppie-server", "Nginx stream proxy", "Forwards public HTTP/HTTPS and PostgreSQL traffic into the cluster")
 
     Container_Boundary(cluster, "Internal Kubernetes Cluster") {
+        Container(tailscale, "Tailscale Operator proxy", "Tailscale", "Exposes Flight SQL to Curie on the tailnet")
         Container(cilium, "Cilium", "CNI + Gateway controller", "Pod networking, service routing, and Gateway API reconciliation")
         Container(localpath, "local-path-provisioner", "StorageClass", "Default local persistent volumes")
         Container(certmanager, "cert-manager", "Controller", "Issues TLS certificates for Gateway listeners")
@@ -33,6 +35,7 @@ System_Boundary(home, "Home Lab") {
         Container(airflowSparkRbac, "Airflow Spark RBAC", "RBAC", "Grants Airflow workers SparkApplication permissions")
         Container(ivyCache, "Ivy cache", "PVC", "Shared JAR cache for Spark driver/executor pods")
         Container(lakekeeper, "Lakekeeper", "Iceberg REST API + web UI", "Bronze, Silver, and Gold warehouse metadata")
+        Container(flightSql, "Ampere Flight SQL", "Go + Arrow Flight SQL + DuckDB", "Read-only queries on Lakekeeper Gold Iceberg")
         Container(kubecontrol, "Kubernetes control plane & nodes", "Kubernetes", "Provides metrics endpoints (kubelet, API server, cAdvisor) for Prometheus")
         Container(prometheus, "Prometheus", "Metrics", "Collects cluster metrics")
         Container(grafana, "Grafana", "Dashboards", "Visualizes metrics")
@@ -67,6 +70,10 @@ Rel(spark, minio, "Writes data", "S3")
 Rel(spark, ivyCache, "Reads JARs", "PVC")
 Rel(lakekeeper, postgres, "Stores catalog metadata", "SQL")
 Rel(lakekeeper, minio, "Vends warehouse storage access", "S3")
+Rel(curie, tailscale, "Queries Gold", "Flight SQL / gRPC over Tailscale")
+Rel(tailscale, flightSql, "Forwards private TCP", "ClusterIP 8815")
+Rel(flightSql, lakekeeper, "Attaches Gold catalog", "Iceberg REST + OAuth")
+Rel(flightSql, minio, "Reads Iceberg data", "S3")
 Rel(sparkconnect, lakekeeper, "Reads Iceberg metadata", "REST")
 Rel(prometheus, kubecontrol, "Scrapes metrics")
 Rel(grafana, prometheus, "Queries metrics")

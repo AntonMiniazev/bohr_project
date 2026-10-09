@@ -1,0 +1,5 @@
+apiVersion: v2
+name: tailscale-oauth
+description: Tailscale Operator OAuth credentials from Azure Key Vault
+type: application
+version: 0.1.0

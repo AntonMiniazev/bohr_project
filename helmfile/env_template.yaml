@@ -50,6 +50,32 @@ sparkConnect:
       cpu: "2"
       memory: 8Gi
 
+flightSql:
+  enabled: false
+  dedicatedCredentials: false
+  node: INFRA_NODE
+  image:
+    repository: ghcr.io/antonminiazev/ampere-flight-sql
+    tag: v0.1.1
+    pullPolicy: IfNotPresent
+  service:
+    flightSqlPort: 8815
+    healthPort: 8080
+  tailscale:
+    expose: true
+    hostname: ampere-flight-sql
+  minioEndpoint: http://minio.NAMESPACE.svc.cluster.local:9000
+  duckdbThreads: 2
+  maxConcurrentQueries: 1
+  duckdbMemoryLimit: 3GB
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 8Gi
+
 ivyCache:
   name: IVY_CACHE_NAME
   size: 10Gi

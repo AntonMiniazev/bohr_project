@@ -1,0 +1,35 @@
+enabled: false
+dedicatedCredentials: false
+node: ampere-k8s-node4
+image:
+  repository: ghcr.io/antonminiazev/ampere-flight-sql
+  tag: v0.1.1
+  pullPolicy: IfNotPresent
+service:
+  flightSqlPort: 8815
+  healthPort: 8080
+tailscale:
+  expose: false
+  hostname: ampere-flight-sql
+duckdbThreads: 2
+maxConcurrentQueries: 1
+duckdbMemoryLimit: 3GB
+minioEndpoint: http://minio.ampere.svc.cluster.local:9000
+catalogUri: http://lakekeeper.ampere.svc.cluster.local:8181/catalog
+oauthUri: ""
+oauthScope: ""
+warehouse: gold
+secrets:
+  minio: minio-creds
+  lakekeeper: lakekeeper-flight-client
+  flightToken: ampere-flight-sql-token
+dedicatedSecrets:
+  minio: flight-sql-minio-creds
+  lakekeeper: lakekeeper-flight-client-dedicated
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: 8Gi

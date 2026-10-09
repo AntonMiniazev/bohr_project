@@ -1,0 +1,5 @@
+vaultUrl: https://az-ampere-kv.vault.azure.net/
+tenantId: {{ .Environment.Values.lakekeeper.auth.tenantId | quote }}
+existingAzureCredential:
+  namespace: {{ .Environment.Values.global.namespace | quote }}
+  name: {{ .Environment.Values.externalSecrets.secretName | quote }}

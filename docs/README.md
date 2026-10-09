@@ -1,7 +1,7 @@
 # Architecture Documentation
 
 ## Overview
-C4-like documentation for the Iceberg home-lab platform. The diagrams show VM provisioning, Kubernetes bootstrap, and the deployed services, including Airflow, Spark Connect, Lakekeeper, PostgreSQL, and MinIO.
+C4-like documentation for the Iceberg home-lab platform. The diagrams show VM provisioning, Kubernetes bootstrap, and the deployed services, including Airflow, Spark Connect, Lakekeeper, the private Flight SQL endpoint, PostgreSQL, and MinIO.
 
 
 ## Diagram inventory

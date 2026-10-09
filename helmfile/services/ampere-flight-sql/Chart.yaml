@@ -1,0 +1,5 @@
+apiVersion: v2
+name: ampere-flight-sql
+description: Read-only Arrow Flight SQL over Ampere Gold Iceberg
+type: application
+version: 0.1.0

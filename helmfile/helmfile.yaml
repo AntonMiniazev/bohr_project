@@ -26,8 +26,33 @@ repositories:
     url: https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner
   - name: lakekeeper
     url: https://lakekeeper.github.io/lakekeeper-charts/
+  - name: tailscale
+    url: https://pkgs.tailscale.com/helmcharts
 
 releases:
+  - name: tailscale-operator-secrets
+    chart: ./services/tailscale-oauth
+    namespace: tailscale
+    createNamespace: true
+    labels:
+      app: tailscale-operator-secrets
+      tier: infra
+    values:
+      - services/tailscale-oauth/values.yaml.gotmpl
+    needs:
+      - external-secrets/external-secrets
+
+  - name: tailscale-operator
+    chart: tailscale/tailscale-operator
+    version: 1.102.4
+    namespace: tailscale
+    createNamespace: true
+    labels:
+      app: tailscale-operator
+      tier: infra
+    needs:
+      - tailscale/tailscale-operator-secrets
+
   - name: cert-manager
     chart: jetstack/cert-manager
     version: 1.21.1
@@ -102,6 +127,19 @@ releases:
       - "{{ .Environment.Values.global.namespace }}/ivy-cache"
       - "{{ .Environment.Values.global.namespace }}/minio"
       - "{{ .Environment.Values.global.namespace }}/ingress-resources"
+
+  - name: ampere-flight-sql
+    chart: ./services/ampere-flight-sql
+    namespace: "{{ .Environment.Values.global.namespace }}"
+    labels:
+      app: ampere-flight-sql
+      tier: data-serving
+    values:
+      - services/ampere-flight-sql/values.yaml.gotmpl
+    needs:
+      - "{{ .Environment.Values.global.namespace }}/lakekeeper"
+      - "{{ .Environment.Values.global.namespace }}/external-secrets-resources"
+      - tailscale/tailscale-operator
 
   - name: airflow-spark-rbac
     chart: ./services/airflow-spark-rbac

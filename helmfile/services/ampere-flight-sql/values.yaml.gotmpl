@@ -1,0 +1,30 @@
+enabled: {{ .Environment.Values.flightSql.enabled }}
+dedicatedCredentials: {{ .Environment.Values.flightSql.dedicatedCredentials }}
+node: {{ .Environment.Values.flightSql.node }}
+image:
+  repository: {{ .Environment.Values.flightSql.image.repository | quote }}
+  tag: {{ .Environment.Values.flightSql.image.tag | quote }}
+  pullPolicy: {{ .Environment.Values.flightSql.image.pullPolicy }}
+service:
+  flightSqlPort: {{ .Environment.Values.flightSql.service.flightSqlPort }}
+  healthPort: {{ .Environment.Values.flightSql.service.healthPort }}
+tailscale:
+  expose: {{ .Environment.Values.flightSql.tailscale.expose }}
+  hostname: {{ .Environment.Values.flightSql.tailscale.hostname | quote }}
+duckdbThreads: {{ .Environment.Values.flightSql.duckdbThreads }}
+maxConcurrentQueries: {{ .Environment.Values.flightSql.maxConcurrentQueries }}
+duckdbMemoryLimit: {{ .Environment.Values.flightSql.duckdbMemoryLimit | quote }}
+minioEndpoint: {{ .Environment.Values.flightSql.minioEndpoint | quote }}
+catalogUri: http://lakekeeper.ampere.svc.cluster.local:8181/catalog
+oauthUri: https://login.microsoftonline.com/{{ .Environment.Values.lakekeeper.auth.tenantId }}/oauth2/v2.0/token
+oauthScope: api://{{ .Environment.Values.lakekeeper.auth.apiClientId }}/.default
+warehouse: gold
+secrets:
+  minio: minio-creds
+  lakekeeper: lakekeeper-flight-client
+  flightToken: ampere-flight-sql-token
+dedicatedSecrets:
+  minio: flight-sql-minio-creds
+  lakekeeper: lakekeeper-flight-client-dedicated
+resources:
+  {{- toYaml .Environment.Values.flightSql.resources | nindent 2 }}

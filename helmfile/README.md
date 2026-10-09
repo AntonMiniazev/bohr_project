@@ -1,6 +1,6 @@
 # Helmfile: Cluster Services Deployment
 
-This Helmfile configuration deploys the Iceberg platform after the control plane and workers are ready. It installs cert-manager, Cilium Gateway API resources, External Secrets Operator, KEDA, Spark Operator, monitoring, PostgreSQL, MinIO, Airflow, Spark Connect, and Lakekeeper, with secrets managed by SOPS and Azure Key Vault.
+This Helmfile configuration deploys the Iceberg platform after the control plane and workers are ready. It installs cert-manager, Cilium Gateway API resources, External Secrets Operator, KEDA, Spark Operator, monitoring, PostgreSQL, MinIO, Airflow, Spark Connect, Lakekeeper, and the read-only Flight SQL service, with secrets managed by SOPS and Azure Key Vault.
 
 Guide
 - [Helmfile: Cluster Services Deployment](#helmfile-cluster-services-deployment)
@@ -57,6 +57,7 @@ Services and roles
 - [KEDA](https://github.com/kedacore/charts) (kedacore chart): event-driven autoscaling for Airflow workers.
 - [Spark Connect](services/spark-connect) (custom chart): Spark Connect endpoint for remote notebooks/clients.
 - [Lakekeeper](services/lakekeeper) (official chart): Iceberg REST catalog and web UI, backed by PostgreSQL and MinIO.
+- [Ampere Flight SQL](services/ampere-flight-sql) (custom chart): read-only DuckDB query service over standard Arrow Flight SQL. It attaches Lakekeeper Gold and is reachable from Curie through Tailscale on TCP 8815.
 - [Airflow DAG source](services/airflow-dags-source) (custom chart): publishes the complete `main` branch DAG tree every 60 seconds.
 
 Versions (current defaults)
@@ -122,4 +123,5 @@ Files to review
 - [`services/external-secrets`](services/external-secrets)
 - [`services/spark-connect`](services/spark-connect)
 - [`services/lakekeeper`](services/lakekeeper)
+- [`services/ampere-flight-sql`](services/ampere-flight-sql)
 - [`services/airflow-dags-source`](services/airflow-dags-source)

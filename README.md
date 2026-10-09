@@ -1,10 +1,11 @@
 ## Overview
-This repository provisions a KVM/libvirt VM fleet and an Iceberg data platform on Kubernetes. Terraform and Cloud-Init bootstrap the VMs; Helmfile deploys Cilium Gateway, cert-manager, External Secrets Operator, PostgreSQL, MinIO, Airflow, Spark Operator, Spark Connect, Lakekeeper, KEDA, and Prometheus/Grafana. PostgreSQL stores application and Lakekeeper metadata; MinIO stores Iceberg data. Services use Gateway API routes and TCP forwarding for internal access.
+This repository provisions a KVM/libvirt VM fleet and an Iceberg data platform on Kubernetes. Terraform and Cloud-Init bootstrap the VMs; Helmfile deploys Cilium Gateway, cert-manager, External Secrets Operator, PostgreSQL, MinIO, Airflow, Spark Operator, Spark Connect, Lakekeeper, a read-only Arrow Flight SQL service, KEDA, and Prometheus/Grafana. PostgreSQL stores application and Lakekeeper metadata; MinIO stores Iceberg data. Services use Gateway API routes and private TCP forwarding for internal access.
 
 ## Repository layout
 - [`terraform/`](terraform/) VM provisioning with libvirt, Cloud-Init, and kubeadm.
 - [`helmfile/`](helmfile/) Helmfile releases and service charts for cluster workloads.
 - [`custom_images/`](custom_images/) Dockerfiles for custom images published to a registry.
+- [`docker/ampere-flight-sql/`](docker/ampere-flight-sql/) Go Flight SQL server and image build source.
 - [`docs/`](docs/) C4-style architecture docs and diagrams.
   - [System Context diagram](docs/images/Context.svg)
   - [Internal Cluster Containers diagram](docs/images/Internal-Cluster-Containers.svg)

@@ -1,0 +1,21 @@
+{{- if .Values.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: ampere-flight-sql
+  {{- if .Values.tailscale.expose }}
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: {{ .Values.tailscale.hostname | quote }}
+  {{- end }}
+  labels:
+    app: ampere-flight-sql
+spec:
+  type: ClusterIP
+  selector:
+    app: ampere-flight-sql
+  ports:
+    - name: flight-sql
+      port: {{ .Values.service.flightSqlPort }}
+      targetPort: flight-sql
+{{- end }}

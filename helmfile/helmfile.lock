@@ -18,5 +18,8 @@ dependencies:
   - name: spark-operator
     repository: https://kubeflow.github.io/spark-operator
     version: 2.4.0
-digest: sha256:3c39f8ad2eddc8e4af51c813ca052dee9e08a92403288c054856eaea83282f91
-generated: "2026-10-04T14:59:32.891040673+02:00"
+  - name: tailscale-operator
+    repository: https://pkgs.tailscale.com/helmcharts
+    version: 1.102.4
+digest: sha256:bc593fec472e836b64718ffefae3d666f41d838b33337d5a4741be5c82d0082d
+generated: "2026-10-08T19:11:29.038091983Z"

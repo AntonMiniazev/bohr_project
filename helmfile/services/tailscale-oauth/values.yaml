@@ -1,0 +1,5 @@
+vaultUrl: https://az-ampere-kv.vault.azure.net/
+tenantId: ""
+existingAzureCredential:
+  namespace: ampere
+  name: azure-kv-sp

@@ -1,0 +1,108 @@
+{{- if .Values.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ampere-flight-sql
+  labels:
+    app: ampere-flight-sql
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: ampere-flight-sql
+  template:
+    metadata:
+      labels:
+        app: ampere-flight-sql
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        flight-sql/credential-mode: {{ ternary "dedicated" "shared" .Values.dedicatedCredentials | quote }}
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: {{ .Values.node | quote }}
+      imagePullSecrets:
+        - name: ghcr-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: flight-sql
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: [sh, -ec]
+          args:
+            - |
+              cat /etc/ssl/certs/ca-certificates.crt /etc/ampere-local-ca/ca.crt > /tmp/ampere-ca-bundle.pem
+              exec /usr/local/bin/ampere-flight-sql
+          ports:
+            - name: flight-sql
+              containerPort: {{ .Values.service.flightSqlPort }}
+            - name: health
+              containerPort: {{ .Values.service.healthPort }}
+          envFrom:
+            - configMapRef:
+                name: ampere-flight-sql-config
+          env:
+            - name: DUCKDB_CA_CERT_FILE
+              value: /tmp/ampere-ca-bundle.pem
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ ternary .Values.dedicatedSecrets.minio .Values.secrets.minio .Values.dedicatedCredentials }}
+                  key: MINIO_ACCESS_KEY
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ ternary .Values.dedicatedSecrets.minio .Values.secrets.minio .Values.dedicatedCredentials }}
+                  key: MINIO_SECRET_KEY
+            - name: LAKEKEEPER_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ ternary .Values.dedicatedSecrets.lakekeeper .Values.secrets.lakekeeper .Values.dedicatedCredentials }}
+                  key: client-id
+            - name: LAKEKEEPER_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ ternary .Values.dedicatedSecrets.lakekeeper .Values.secrets.lakekeeper .Values.dedicatedCredentials }}
+                  key: client-secret
+            - name: FLIGHT_SQL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.flightToken }}
+                  key: token
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: scratch
+              mountPath: /tmp
+            - name: local-ca
+              mountPath: /etc/ampere-local-ca
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            periodSeconds: 20
+            failureThreshold: 3
+      volumes:
+        - name: scratch
+          emptyDir: {}
+        - name: local-ca
+          configMap:
+            name: local-ca-public
+{{- end }}
