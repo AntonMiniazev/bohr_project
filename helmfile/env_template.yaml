@@ -22,6 +22,7 @@ spark:
 sparkConnect:
   enabled: true
   node: SPARK_NODE
+  master: local[3]
   image:
     repository: spark
     tag: "4.1.1-python3"
@@ -44,10 +45,10 @@ sparkConnect:
     mountPath: /opt/spark/ivy
   resources:
     requests:
-      cpu: "1"
+      cpu: "2"
       memory: 5Gi
     limits:
-      cpu: "2"
+      cpu: "3"
       memory: 8Gi
 
 flightSql:

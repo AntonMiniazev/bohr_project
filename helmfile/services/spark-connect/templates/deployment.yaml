@@ -47,7 +47,7 @@ spec:
               set -euo pipefail
               mkdir -p /opt/spark/conf
               cat > /opt/spark/conf/spark-defaults.conf <<EOF
-              spark.master                       local[*]
+              spark.master                       {{ .Values.sparkConnect.master }}
               spark.app.name                     spark-connect
               spark.connect.grpc.binding.port    {{ .Values.sparkConnect.service.port }}
               spark.connect.grpc.binding.address 0.0.0.0

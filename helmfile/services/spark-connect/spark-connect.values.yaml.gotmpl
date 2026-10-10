@@ -1,6 +1,7 @@
 sparkConnect:
   enabled: {{ .Environment.Values.sparkConnect.enabled | default true }}
   node: {{ .Environment.Values.sparkConnect.node }}
+  master: {{ .Environment.Values.sparkConnect.master | quote }}
   image:
     repository: {{ .Environment.Values.sparkConnect.image.repository }}
     tag: {{ .Environment.Values.sparkConnect.image.tag }}
