@@ -8,6 +8,9 @@ sparkConnect:
     pullPolicy: {{ .Environment.Values.sparkConnect.image.pullPolicy }}
   service:
     port: {{ .Environment.Values.sparkConnect.service.port }}
+  tailscale:
+    expose: {{ .Environment.Values.sparkConnect.tailscale.expose | default false }}
+    hostname: {{ .Environment.Values.sparkConnect.tailscale.hostname | quote }}
   ingress:
     enabled: false
     className: ""
@@ -29,6 +32,8 @@ sparkConnect:
     scope: api://{{ .Environment.Values.lakekeeper.auth.apiClientId }}/.default
     clientSecretName: lakekeeper-spark-client
     catalogs:
+      - name: iceberg_raw
+        warehouse: raw
       - name: iceberg_bronze
         warehouse: bronze
       - name: iceberg_silver

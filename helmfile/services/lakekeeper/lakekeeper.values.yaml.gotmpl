@@ -14,7 +14,7 @@ externalDatabase:
 catalog:
   replicas: 1
   nodeSelector:
-    kubernetes.io/hostname: {{ .Environment.Values.infra.node }}
+    kubernetes.io/hostname: ampere-k8s-node3
   resources:
     requests:
       cpu: 100m

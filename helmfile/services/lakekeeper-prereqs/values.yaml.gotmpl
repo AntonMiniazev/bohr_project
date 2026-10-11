@@ -5,6 +5,7 @@ minio:
   endpoint: {{ .Environment.Values.minio.server_url }}
   image: alpine:3.21
 buckets:
+  - ampere-iceberg-raw
   - ampere-iceberg-bronze
   - ampere-iceberg-silver
   - ampere-iceberg-gold
